@@ -335,6 +335,8 @@ then
    <h3>The technology</h3>
    <div> 
 Developed with the open source <a  target="_blank" class="external" href="http://exist-db.org">eXist db</a>. 
+ Code and issues are on <a target="_blank" class="external" href="https://github.com/KitWallace/TreeCare">Github</a>
+
 
    </div>
 
