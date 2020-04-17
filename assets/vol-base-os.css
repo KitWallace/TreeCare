@@ -1,0 +1,106 @@
+body {
+    background-color:  #C0DB73;
+    padding-right: 20px;    padding-left: 20px; 
+    font-family: 'Open Sans', serif; font-size:14pt;
+    font-size: 15pt; color: #818086;
+    line-height: 120%;
+}
+
+h1,h2,h3,h4 {
+    color: #0D0D16; margin:0;  margin-bottom:5pt; margin-top: 5pt;
+    font-family: 'Alegreya SC'; word-spacing:0.2em;;
+}
+h1 {
+    font-size:18pt;
+}
+h2 {
+    font-size: 16pt;
+}
+h3 {
+    font-size:14pt;
+}
+h4 {
+    font-size:12pt;
+}
+div { font-size:12pt; padding-bottom:5pt;  padding-top:5pt;}
+
+span {padding-right: 10px}
+table {margin-top:5px;}
+tr {margin-top:2px;}
+th {text-align:left;  vertical-align:top; font-family: 'Alegreya SC'; font-size:12pt; }
+td { font-size:12pt;}
+.bold {font-weight: bold;}
+td.nb {white-space: nowrap;}
+ul {margin-top:0px;}
+li {margin-top:4px; font-size:12pt;}
+li.big {font-size:15pt;}
+form {margin-top:10px; font-size:14pt;}
+div.entry {padding-top: 5px; padding-bottom:0px;}
+a {
+    text-decoration:none;
+    color:  #11E;
+}
+
+a:visited {
+    color: #59A;
+}
+
+span.nav a {padding-left:15px; letter-spacing: 0.1em; font-weight: bold}
+a.external {
+    background-image: url('Icon_External_Link.png');
+    padding-right: 12px;
+    text-decoration: none;
+    background-position: right;
+    background-repeat:no-repeat;
+}
+
+@media (min-width:541px){
+    #text {position:relative; left:20px; width:48%; }
+    #photo {position: absolute; top: 50px; left:50%; width: 48%; height:500px; }
+    #sidebar {position:relative; left:10px; width:35%; font-size:16pt;}
+    #bigphoto {position:absolute; top:150px; width:60%; right:15px;}
+    .nav a {padding-left:20px; letter-spacing: 0.2em; font-weight: bold}
+    #map_canvas {position: absolute; top: 100px; right:20px; width: 80%; height:400px; }
+    #map_legend {position: relative; left:10px; width: 15%; }
+}
+
+@media (max-width:540px){ 
+   .nav a {padding-left:5px; letter-spacing: 0.2em; font-weight: bold}
+    #map_canvas {position: relative; right:10px; height:400px; }
+
+}
+input, select, textarea {
+  background-color : #C0C073; 
+  font-size:12pt;
+}
+hr {size:3;}
+
+.rotatecw {transform: rotate(90deg)}
+.rotateacw {transform: rotate(-90deg)}
+
+/* Tooltip container */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  color: #0D0D16;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 200px;
+  background-color: white;
+  color: #0D0D16;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+ 
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}

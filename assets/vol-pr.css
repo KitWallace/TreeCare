@@ -1,0 +1,91 @@
+body {
+    background-color:  #D8D8D8;
+    padding-right: 20px;    padding-left: 20px; 
+    font-family: 'Gentium Book Basic', serif; font-size:14pt;
+    font-size: 14pt; color: #5E5853;
+}
+
+h1,h2,h3,h4 {
+    color: #055; margin:0;  margin-bottom:5pt; margin-top: 5pt;
+    font-family: 'Merriweather Sans';
+}
+h1 {
+    font-size:18pt;
+}
+h2 {
+    font-size: 16pt;
+}
+h3 {
+    font-size:14pt;
+}
+h4 {
+    font-size:12pt;
+}
+div {font-family: 'Gentium Book Basic', serif; font-size:12pt; padding-bottom:5pt;  padding-top:5pt;}
+
+span {padding-right: 10px}
+table {margin-top:5px;}
+tr {margin-top:2px;}
+th {text-align:left;  vertical-align:top; font-family: 'Merriweather Sans'; font-size:12pt; color: #055;}
+td {font-family: 'Gentium Book Basic', serif; font-size:12pt;}
+ .bold {font-weight: bold;}
+td.nb {white-space: nowrap;}
+ul {margin-top:0px;}
+li {margin-top:4px; font-family: 'Gentium Book Basic', serif; font-size:12pt;}
+
+form {margin-top:10px; font-family: 'Gentium Book Basic', serif; font-size:14pt;}
+.nopr {display:none;}
+a {
+    text-decoration:none;
+    color: #11E;
+}
+
+a:visited {
+    color: #59A;
+}
+
+a.external {
+    background-image: url('Icon_External_Link.png');
+    padding-right: 12px;
+    text-decoration: none;
+    background-position: right;
+    background-repeat:no-repeat;
+}
+
+
+input, select, textarea {
+  background-color : #e1e1e1; 
+  font-family: 'Gentium Book Basic', serif; font-size:12pt;
+}
+hr {size:3;}
+button {font-family: 'Gentium Book Basic', serif; font-size:12pt;}
+
+.rotatecw {transform: rotate(90deg)}
+.rotateacw {transform: rotate(-90deg)}
+
+/* Tooltip container */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  color: blue;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 200px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+ 
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
