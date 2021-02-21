@@ -1,12 +1,17 @@
-const int AirValue = 2475;   //you need to replace this value with Value_1
-const int WaterValue = 380;  //you need to replace this value with Value_2
-int soilMoistureValue = 0;
-int soilmoisturepercent=0;
+/*
+run this script with the sensor placed in Water and record the average value, then in air likewise and enter these values in the constants.  
+Water and air should then read 100% and 0% respecively
 
+*/
+
+const int AirValue = 2475;   //you need to replace this value 
+const int WaterValue = 380;  //you need to replace this value
 
 int Moisture_Pin = A0;
+
 void setup() {
-  Serial.begin(115200); // open serial port, 
+   
+   Serial.begin(115200); // open serial port, 
 
 }
   
@@ -29,7 +34,7 @@ Serial.print(WaterValue);
 Serial.print(" Max(Air) ");
 Serial.println(AirValue);
 
-soilmoisturepercent = map(soilMoistureValue, AirValue, WaterValue, 0, 100);
+int soilmoisturepercent = map(soilMoistureValue, AirValue, WaterValue, 0, 100);
 Serial.print("Moisture:");
 if(soilmoisturepercent >= 100)
 {
