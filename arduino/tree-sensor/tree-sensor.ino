@@ -17,7 +17,7 @@
 */
 // configuration stuff
 #define USE_WIFI
-#define USE_GSM
+//#define USE_GSM
 #define WIFI_CONNECTION_RETRY_DELAY 50
 //this is the ammount of time in microseconds that the device sleeps for before it does all this again.
 #define uS_TO_S_FACTOR 1000000     /* Conversion factor for micro seconds to seconds */
@@ -37,6 +37,7 @@
 // Configure TinyGSM library
 #define TINY_GSM_MODEM_SIM800      // Modem is SIM800
 #define TINY_GSM_RX_BUFFER   1024  // Set RX buffer to 1Kb
+#define TEMPERATURE_RESOLUTION 9 // this can be 12 as it is by default but it saves ~0.5seconds going to 9
 
 // temperature sensor
 #include <OneWire.h>
@@ -295,15 +296,17 @@ void loop() {
       SERIAL_PRINTLN(battery_voltage);
 
       // get temperature
-      sensors.setResolution(9);
+      sensors.setResolution(TEMPERATURE_RESOLUTION);
       sensors.requestTemperaturesByIndex(0);
       float temp_C = sensors.getTempCByIndex(0);
       SERIAL_PRINT("Temperature is ");
       SERIAL_PRINTLN(temp_C);
-
-      int csq = modem.getSignalQuality();
-      SERIAL_PRINT("Signal quality is ");
-      SERIAL_PRINTLN(csq);
+      
+      #ifdef USE_GSM
+        int csq = modem.getSignalQuality();
+        SERIAL_PRINT("Signal quality is ");
+        SERIAL_PRINTLN(csq);
+      #endif
   
       SERIAL_PRINT("Time to setup and read: ");
       int time_to_read = millis() - StartTime -time_to_connect;
@@ -318,8 +321,11 @@ void loop() {
         "&battery-voltage=" + battery_voltage +
         "&temp-C=" + temp_C +
         "&time-to-connect=" + time_to_connect + 
-        "&time-to-read=" + time_to_read +
-        "&gsm-signal-quality=" + csq;
+        "&time-to-read=" + time_to_read;
+        
+       #ifdef USE_GSM
+        httpRequestData += "&gsm-signal-quality=" + csq;
+       #endif
 
       //SERIAL_PRINTLN(httpRequestData);
       
@@ -346,8 +352,10 @@ void loop() {
       // Close client and disconnect
       client.stop();
       SERIAL_PRINTLN(F("Server disconnected"));
-      modem.gprsDisconnect();
-      SERIAL_PRINTLN(F("GPRS disconnected"));
+      #ifdef USE_GSM
+        modem.gprsDisconnect();
+        SERIAL_PRINTLN(F("GPRS disconnected"));
+      #endif
     }
   }
 
@@ -360,9 +368,11 @@ void loop() {
   SERIAL_PRINTLN(TIME_TO_SLEEP);
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
 
-  digitalWrite(MODEM_PWKEY, HIGH);
-  digitalWrite(MODEM_RST, LOW);
-  digitalWrite(MODEM_POWER_ON, LOW);
-
+  #ifdef USE_GSM
+    digitalWrite(MODEM_PWKEY, HIGH);
+    digitalWrite(MODEM_RST, LOW);
+    digitalWrite(MODEM_POWER_ON, LOW);
+  #endif
+  
   esp_deep_sleep_start();
 }
