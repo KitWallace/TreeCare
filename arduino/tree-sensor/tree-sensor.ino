@@ -16,8 +16,8 @@
   
 */
 // configuration stuff
-#define USE_WIFI
-//#define USE_GSM
+//#define USE_WIFI
+#define USE_GSM
 #define WIFI_CONNECTION_RETRY_DELAY 50
 //this is the ammount of time in microseconds that the device sleeps for before it does all this again.
 #define uS_TO_S_FACTOR 1000000     /* Conversion factor for micro seconds to seconds */
@@ -321,10 +321,12 @@ void loop() {
         "&battery-voltage=" + battery_voltage +
         "&temp-C=" + temp_C +
         "&time-to-connect=" + time_to_connect + 
-        "&time-to-read=" + time_to_read;
+        "&time-to-read=" + time_to_read
         
        #ifdef USE_GSM
-        httpRequestData += "&gsm-signal-quality=" + csq;
+        + "&gsm-signal-quality=" + csq;
+       #else
+        ;
        #endif
 
       //SERIAL_PRINTLN(httpRequestData);
@@ -338,7 +340,8 @@ void loop() {
       client.println();
       client.println(httpRequestData);
 
-      /*unsigned long timeout = millis();
+      //I am not sure why you need this for GSM - maybe because we disconnect so quick?
+      unsigned long timeout = millis();
       while (client.connected() && millis() - timeout < HTTP_POST_TIMEOUT) {
         // Print available data (HTTP response from server)
         // why wait for response?
@@ -347,7 +350,7 @@ void loop() {
           SERIAL_PRINT(c);
           timeout = millis();
         }
-      }*/
+      }
     
       // Close client and disconnect
       client.stop();
