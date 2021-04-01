@@ -211,8 +211,6 @@ void loop() {
 // get temperature
    sensors.requestTemperatures();
    float temp_C = sensors.getTempCByIndex(0);
-// get signal quality
-   int signal_quality = modem.getSignalQuality();     
       
 
 // send data
@@ -231,6 +229,9 @@ void loop() {
       else {
          SerialMon.println(" OK");  
          int run_ms = millis() - start;   
+  // get signal quality
+   int signal_quality = modem.getSignalQuality();     
+
   // make URL      
    String httpRequestData = "_appid=" + appid + "&_device="+ device +"&moisture-pc="+ moisture_pc +"&battery-voltage="+battery_voltage+"&temp-C="+temp_C + "&signal-quality=" + signal_quality+"&run_ms="+run_ms;
    SerialMon.println(httpRequestData);
