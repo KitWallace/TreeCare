@@ -14,20 +14,20 @@
 
 // configuration constants
 
-// Your GPRS credentials (leave empty, if not needed)
-const char apn[]      = "uk.lebara.mobi"; // APN (example: internet.vodafone.pt) use https://wiki.apnchanger.org
-const char gprsUser[] = "wap"; // GPRS User
-const char gprsPass[] = "wap"; // GPRS Password
+//  GPRS credentials 
+const char apn[]      = "uk.lebara.mobi"; 
+const char gprsUser[] = "wap"; 
+const char gprsPass[] = "wap"; 
 
 // SIM card PIN (leave empty, if not defined)
 const char simPIN[]   = ""; 
 
 // Server details
-const char server[] = "kitwallace.co.uk"; // domain name: example.com, maker.ifttt.com, etc
-const char resource[] = "/logger/log-data.xq";         // resource path, for example: /post-data.php
-const int  port = 80;                             // server port number
+const char server[] = "kitwallace.co.uk"; 
+const char resource[] = "/logger/log-data.xq";   
+const int  port = 80;           
 
-String appid = "1418";   // change this 
+String appid = "1418";   // logger pin - change this 
 String device = "Tree2";   // change this for a different location - server knows what tree this sensor attached to so no need for changes in the field.
 
 // GPIO sensor power 
@@ -39,7 +39,7 @@ String device = "Tree2";   // change this for a different location - server know
 const int AirValue = 3199;   
 const int WaterValue = 1207;  
 
-// Data wire is is on Pin 14 (I/O pin) with added 4.7K pullup)
+// Data wire is on Pin 14 (I/O pin) with added 4.7K pullup)
 #define ONE_WIRE_BUS 14
 
 // battery monitoring
@@ -47,7 +47,6 @@ const int WaterValue = 1207;
 
 // refresh interval
 #define TIME_TO_SLEEP  60*60        /* Time ESP32 will go to sleep (in seconds)  */
-
 
 // end configuration
 // TTGO T-Call pins
@@ -60,6 +59,7 @@ const int WaterValue = 1207;
 #define I2C_SCL              22
 
 // Moisture sensor
+// sensor reading fluctuates so I use the median of 2n+1 readings as a rubust central messure 
 
 const int nReadings=7;  // must be odd
 int readings[nReadings];
@@ -70,17 +70,17 @@ int get_moisture_pc() {
     readings[i]=reading;
     delay(reading_delay);
    }
-   printArray(readings,nReadings);
+//   printArray(readings,nReadings);
    int soilMoistureValue = median(readings,nReadings);
-   Serial.print("median ");
-   Serial.println(soilMoistureValue);
+//   Serial.print("median ");
+//   Serial.println(soilMoistureValue);
    int soilMoisturePC = map(soilMoistureValue, AirValue, WaterValue, 0, 100);
    if (soilMoisturePC > 100 )  soilMoisturePC = 100; 
    if (soilMoisturePC <0 )  soilMoisturePC = 0;   
    return soilMoisturePC; 
 }
 
-//Bubble sort 
+//Bubble sort  - Its many years since I used this and I'm suitably ashamed but for 7 numbers performance ist an issue
 void bubbleSort(int *a, int n)
 {
  for (int i = 1; i < n; ++i)
@@ -122,7 +122,6 @@ OneWire oneWire(ONE_WIRE_BUS);
 
 // Pass our oneWire reference to Dallas Temperature sensor 
 DallasTemperature sensors(&oneWire);
-
 
 
 // Set serial for debug console (to Serial Monitor, default speed 115200)
