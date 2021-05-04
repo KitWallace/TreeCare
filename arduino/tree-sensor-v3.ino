@@ -1,5 +1,5 @@
 /*
-  Combined GSM and Wifi Deepsleet code for 1 moisture sennsor and 2 temperature sensors 
+  Combined GSM and Wifi Deepsleep code for 1 moisture sennsor and 2 temperature sensors 
   
   Kit Wallace
 
