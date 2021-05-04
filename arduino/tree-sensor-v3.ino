@@ -1,24 +1,26 @@
 /*
-  Rui Santos
-  Complete project details at https://RandomNerdTutorials.com/esp32-sim800l-publish-data-to-cloud/
+  Combined GSM and Wifi Deepsleet code for 1 moisture sennsor and 2 temperature sensors 
   
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files.
-  
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-  
-  adapted by  kit wallace for use in remote moisture and temperature  sensing
+  Kit Wallace
+
+  with acknowledgements to Rui Santos https://RandomNerdTutorials.com/esp32-sim800l-publish-data-to-cloud/
+  and Ian Mitchell
   
 */
 
-// configuration constants
-// Wifi credentials
+#define GSM
+// #define WIFI
 
+// configuration constants
+
+#ifdef WIFI
+// WiFi credentials
 const char* ssid     = "BT-C3A5ZT";
 const char* password = "Azores19";
+#endif
 
-// Your GPRS credentials 
+#ifdef GSM
+// GPRS credentials 
 const char apn[]      = "everywhere"; 
 const char gprsUser[] = "eesecure"; 
 const char gprsPass[] = "secure"; 
@@ -26,7 +28,9 @@ const char gprsPass[] = "secure";
 // SIM card PIN (leave empty, if not defined)
 const char simPIN[]   = ""; 
 
-// Server details
+#endif
+
+// Host details
 const char host[] = "kitwallace.co.uk"; 
 const char resource[] = "/logger/log-data.xq";        
 const int  httpPort = 80;                             
@@ -51,23 +55,18 @@ const int WaterValue = 1202;
 #define battery_ADC 35
 
 // refresh interval
+#define uS_TO_S_FACTOR 1000000ULL     /* Conversion factor for micro seconds to seconds - cast as ULL to allow long sleeps  */
 #define TIME_TO_SLEEP  60        /* Time ESP32 will go to sleep (in seconds)  */
-
 
 // end configuration
 
 RTC_DATA_ATTR int run_ms = 0;
 RTC_DATA_ATTR int boot_no = 0;
 
-
-// TTGO T-Call pins
-#define MODEM_RST            5
-#define MODEM_PWKEY          4
-#define MODEM_POWER_ON       23
-#define MODEM_TX             27
-#define MODEM_RX             26
-#define I2C_SDA              21
-#define I2C_SCL              22
+// voltage
+float get_battery_voltage() {
+   return analogRead(battery_ADC) *2.0 / 1135;
+}
 
 // Moisture sensor
 
@@ -131,36 +130,41 @@ OneWire oneWire(ONE_WIRE_BUS);
 // Pass our oneWire reference to Dallas Temperature sensor 
 DallasTemperature sensors(&oneWire);
 
-// wifi
+
+#ifdef WIFI
 #include <WiFi.h>
+   
+WiFiClient client;
 
-void WiFi_HTTP_Request(String url) {
-   WiFiClient client;
-   url.replace(" ", "+");
-   while (true) {
-    if (client.connect(host, httpPort)) break;
-    Serial.print(".");
-    delay(100);
-  }
-
-  Serial.print("requesting URL: ");
-  Serial.println(url);
-// This will send the request to the server
-  String httprequest = String("GET ") + url + " HTTP/1.1\r\n" +
-               "Host: " + host + "\r\n" + 
-               "Connection: close\r\n\r\n";
-// Serial.println(httprequest);
-  client.print(httprequest);
-  
-// Read all the lines of the reply from server and print them to Serial
-  while(client.available()){
-    String line = client.readStringUntil('\r');
-    Serial.print(line);
-  }
-  
-//  Serial.println();
-  Serial.println("closing connection");
+void WiFi_start() {  
+     WiFi.begin(ssid, password);
+   
+     while (WiFi.status() != WL_CONNECTED) {
+       delay(500);
+       Serial.print(".");
+    }
+    Serial.println("");
+    Serial.print("WiFi connected ");  
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());   
 }
+
+void WiFi_end() {
+}
+
+#endif
+
+#ifdef GSM
+
+// TTGO T-Call pins
+#define MODEM_RST            5
+#define MODEM_PWKEY          4
+#define MODEM_POWER_ON       23
+#define MODEM_TX             27
+#define MODEM_RX             26
+#define I2C_SDA              21
+#define I2C_SCL              22
+
 
 // Set serial for AT commands (to SIM800 module)
 #define SerialAT Serial1
@@ -186,11 +190,8 @@ void WiFi_HTTP_Request(String url) {
 // I2C for SIM800 (to keep it running when powered from battery)
 TwoWire I2CPower = TwoWire(0);
 
-
 // TinyGSM Client for Internet connection
 TinyGsmClient client(modem);
-
-#define uS_TO_S_FACTOR 1000000ULL     /* Conversion factor for micro seconds to seconds - cast as ULL to allow long sleeps  */
 
 #define IP5306_ADDR          0x75
 #define IP5306_REG_SYS_CTL0  0x00
@@ -205,7 +206,7 @@ bool setPowerBoostKeepOn(int en){
   }
   return I2CPower.endTransmission() == 0;
 }
-void start_GSM() {
+void GSM_start() {
     // Start I2C communication
   I2CPower.begin(I2C_SDA, I2C_SCL, 400000);
 
@@ -235,58 +236,55 @@ void start_GSM() {
   if (strlen(simPIN) && modem.getSimStatus() != 3 ) {
     modem.simUnlock(simPIN);
   }
+    
+  Serial.print("Connecting to APN: ");
+  Serial.println(apn);
+  if (!modem.gprsConnect(apn, gprsUser, gprsPass)) {
+       Serial.println(" fail");
+  }
+  else {
+    Serial.println(" OK");
+  }
 }
 
-void GSM_HTTP_Request (String url) {
-  
-   start_GSM();
-   
-   Serial.print("Connecting to APN: ");
-   Serial.print(apn);
-   if (!modem.gprsConnect(apn, gprsUser, gprsPass)) {
-       Serial.println(" fail");
+void GSM_end() {
+   modem.gprsDisconnect();
+   Serial.println("GPRS disconnected");
+}
+
+#endif
+
+void HTTP_Request(String httpRequestData) { 
+    httpRequestData.replace(" ", "+");
+    int tries = 0;
+    while (tries < 10) {
+      if (client.connect(host, httpPort)) break;
+      Serial.print(".");
+      tries+=1;
+      delay(100);
    }
-   else {
-      Serial.println(" OK");
-      Serial.print("Connecting to ");
-      Serial.print(host);
-      if (!client.connect(host, httpPort)) {
-         Serial.println(" fail");
-      }
-      else Serial.println(" OK");  
-      
-  // get signal quality
+#ifdef GSM
    int signal_quality = modem.getSignalQuality();          
-
-   String httpRequestData = url + "&signal-quality="+signal_quality;
-   
-  // post data   
-         client.print(String("POST ") + resource + " HTTP/1.1\r\n");
-         client.print(String("Host: ") + host + "\r\n");
-         client.println("Connection: close");
-         client.println("Content-Type: application/x-www-form-urlencoded");
-         client.print("Content-Length: ");
-         client.println(httpRequestData.length());
-         client.println();
-         client.println(httpRequestData);
-
-         unsigned long timeout = millis();
-         while (client.connected() && millis() - timeout < 10000L) {
-           // Print available data (HTTP response from server)
-            while (client.available()) {
-               char c = client.read();
-               Serial.print(c);
-               timeout = millis();
-            }
-         }
-         Serial.println();
-         
-         // Close client and disconnect
-         client.stop();
-         Serial.println("Server disconnected");
-         modem.gprsDisconnect();
-         Serial.println("GPRS disconnected");
-       }
+   httpRequestData = httpRequestData + "&signal-quality="+signal_quality;  
+#endif
+//  construct http request
+    String httpRequest = String("GET ") + resource +"?" + httpRequestData + " HTTP/1.1\r\n" +
+               "Host: " + host + "\r\n" + 
+               "Connection: close\r\n\r\n";
+   Serial.println(httpRequest);
+   client.print(httpRequest);
+  
+// Read all the lines of the reply from server and print them to Serial
+/*   
+  while(client.available()){
+    String line = client.readStringUntil('\r');
+    Serial.print(line);
+  }
+*/
+  
+//  Serial.println();
+   Serial.println("closing connection");
+   client.stop();
 }
 
 void setup() {
@@ -303,7 +301,7 @@ void setup() {
   //one wire begin
   sensors.begin();
       
-  // get temperatures - need to tet and mark to find shich is which
+  // get temperatures - need to test and mark to find which is which
       sensors.requestTemperatures();
       float soil_temp_C = sensors.getTempCByIndex(0);
       float air_temp_C = sensors.getTempCByIndex(1);
@@ -321,15 +319,23 @@ void setup() {
     digitalWrite(MOISTUREPOWER,LOW); // power off the moisture sensors
 
     // get battery level
-    float battery_voltage = analogRead(battery_ADC) *2.0 / 1135;
+    float battery_voltage = get_battery_voltage();
 
     String httpRequestData = "_appid=" + appid + "&_device="+ deviceid +"&moisture-pc="+ moisture_pc +"&battery-voltage="+battery_voltage+"&soil-temp-C="+soil_temp_C +"&air-temp-C="+air_temp_C +"&run_ms="+run_ms+"&boot-no="+boot_no;
     Serial.println(httpRequestData);
- 
   // send data
     
-     GSM_HTTP_Request(httpRequestData);
-
+#ifdef GSM
+    GSM_start();
+    HTTP_Request(httpRequestData);
+    GSM_end();
+#endif
+#ifdef WIFI
+    WiFi_start();
+    HTTP_Request(httpRequestData);
+    WiFi_end();
+#endif
+   
   // Configure the wake up source as timer wake up  
     esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
     
