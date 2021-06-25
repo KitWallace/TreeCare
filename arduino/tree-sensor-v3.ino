@@ -1,10 +1,12 @@
 /*
-  Combined GSM and Wifi Deepsleep code for 1 moisture sennsor and 2 temperature sensors 
+  Combined GSM and Wifi Deepsleep code for 1 moisture sensor and 2 temperature sensors 
   
   Kit Wallace
 
   with acknowledgements to Rui Santos https://RandomNerdTutorials.com/esp32-sim800l-publish-data-to-cloud/
   and Ian Mitchell
+  
+  V3
   
 */
 
