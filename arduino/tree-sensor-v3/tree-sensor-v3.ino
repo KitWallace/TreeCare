@@ -8,8 +8,8 @@
   
 */
 
-//#define GSM
-#define WIFI
+#define GSM
+//#define WIFI
 
 #include <WiFi.h>
 
@@ -48,7 +48,7 @@ String deviceid = "Tree4";
 #define moisture_A2D A0
 
 const int AirValue = 3250;   
-const int WaterValue = 1202;  
+const int WaterValue = 1320;  
 
 // Data wire is is on Pin 14 (I/O pin) with added 4.7K pullup)
 #define ONE_WIRE_BUS 14
@@ -58,7 +58,7 @@ const int WaterValue = 1202;
 
 // refresh interval
 #define uS_TO_S_FACTOR 1000000ULL     /* Conversion factor for micro seconds to seconds - cast as ULL to allow long sleeps  */
-#define TIME_TO_SLEEP  60        /* Time ESP32 will go to sleep (in seconds)  */
+#define TIME_TO_SLEEP  (60)        /* Time ESP32 will go to sleep (in seconds)  */
 
 // end configuration
 
@@ -77,6 +77,7 @@ int readings[nReadings];
 int reading_delay=10;
 
 int get_moisture_pc() {
+  Serial.println(">>> get_moisture_pc");
    for (int i=0;i < nReadings; i++) {
     int reading = analogRead(moisture_A2D);
     readings[i]=reading;
@@ -84,9 +85,11 @@ int get_moisture_pc() {
    }
    printArray(readings,nReadings);
    int soilMoistureValue = median(readings,nReadings);
-   int soilMoisturePC = map(soilMoistureValue, AirValue, WaterValue, 0, 100);
-   if (soilMoisturePC > 100 )  soilMoisturePC = 100; 
-   if (soilMoisturePC <0 )  soilMoisturePC = 0;   
+   int soilMoisturePC = constrain(map(soilMoistureValue, AirValue, WaterValue, 0, 100), 0, 100);
+   
+   Serial.print("<<< get_moisture_pc, returning ");
+   Serial.println(soilMoisturePC);
+   
    return soilMoisturePC; 
 }
 
@@ -346,14 +349,33 @@ void setup() {
   //one wire begin
   sensors.begin();
 
-  // Keep power when running from battery
-  bool isOk = setPowerBoostKeepOn(1);
+  Serial.print("Keep power when running from battery ");
+  int power_boost_retries = 15;
+  bool isOk;
+  for( isOk = setPowerBoostKeepOn(1); (isOk != true) && (power_boost_retries != 0); power_boost_retries--, isOk = setPowerBoostKeepOn(1))
+  {
+    Serial.print(".");
+  }
+    
   Serial.println(String("IP5306 KeepOn ") + (isOk ? "OK" : "FAIL"));
       
   // get temperatures - need to test and mark to find which is which
+  Serial.println("Reading temperatures...");
       sensors.requestTemperatures();
-      float soil_temp_C = 0;//sensors.getTempCByIndex(0);
-      float air_temp_C = 0;//sensors.getTempCByIndex(1);
+      float soil_temp_C = sensors.getTempCByIndex(0);
+      Serial.print("soil_temp_C=");
+      Serial.println(soil_temp_C);
+      float air_temp_C = sensors.getTempCByIndex(1);
+      Serial.print("air_temp_C=");
+      Serial.println(air_temp_C);
+
+      Serial.println("After clipping");
+      soil_temp_C = constrain(soil_temp_C, 0, 100);
+      Serial.print("soil_temp_C=");
+      Serial.println(soil_temp_C);
+      air_temp_C = constrain(air_temp_C, 0, 100);
+      Serial.print("air_temp_C=");
+      Serial.println(air_temp_C);
 
    // end temp data
    
