@@ -5,6 +5,8 @@
 
   with acknowledgements to Rui Santos https://RandomNerdTutorials.com/esp32-sim800l-publish-data-to-cloud/
   and Ian Mitchell
+
+  Board ESP32 Ardunio->TTGO T1
   
 */
 
@@ -177,6 +179,8 @@ bool WiFi_start() {
 
   Serial.println("");
 
+  *internet_connection_retries = CONNECTION_TRIES - isConnetedCnt;
+
     if( isConnetedCnt >= 0 ) {
     
       Serial.print("WiFi connected ");  
@@ -231,7 +235,7 @@ void WiFi_end() {
 // TinyGSM Client for Internet connection
 TinyGsmClient client(modem);
 
-bool GSM_start() {
+bool GSM_start(int *internet_connection_retries) {
   // Set modem reset, enable, power pins
   pinMode(MODEM_PWKEY, OUTPUT);
   pinMode(MODEM_RST, OUTPUT);
@@ -242,12 +246,13 @@ bool GSM_start() {
 
   // Set GSM module baud rate and UART pins
   SerialAT.begin(115200, SERIAL_8N1, MODEM_RX, MODEM_TX);
-  delay(1000);
+  //delay(1000); - im not sure why this was needed
 
   // Restart SIM800 module, it takes quite some time
   // To skip it, call init() instead of restart()
   Serial.println("Initializing modem...");
-  modem.restart();
+  if( boot_no == 0) modem.restart();
+  else modem.init();
   // use modem.init() if you don't need the complete restart
 
   // Unlock your SIM card with a PIN if needed
@@ -256,20 +261,30 @@ bool GSM_start() {
   }
     
   Serial.print("Connecting to APN: ");
-  Serial.println(apn);
+  Serial.print(apn);
   if (!modem.gprsConnect(apn, gprsUser, gprsPass)) {
-       Serial.println(" fail");
+       Serial.println(" gprsConnect failed");
        return false;
   }
-  else {
-    Serial.println(" connected");
+
+  if (modem.isGprsConnected()) { 
+    Serial.println(" GPRS connected");
+    *internet_connection_retries = 0;
     return true;
+  }
+  else
+  {
+    *internet_connection_retries = -1;
+    return false;
   }
 }
 
 void GSM_end() {
    modem.gprsDisconnect();
    Serial.println("GPRS disconnected");
+
+   //turn off the modem
+   digitalWrite(MODEM_POWER_ON, LOW);
 }
 
 #endif
@@ -310,7 +325,9 @@ void HTTP_Request(String httpRequestData) {
   String macAddr = WiFi.macAddress();
   //Serial.println(macAddr);
   httpRequestData = httpRequestData + "&mac="+macAddr;
-  
+
+  //add the number of retries
+  httpRequestData = httpRequestData + "&server-connection-retries="+(tries);
 //  construct http request
     String httpRequest = String("GET ") + resource +"?" + httpRequestData + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" + 
@@ -331,15 +348,39 @@ void HTTP_Request(String httpRequestData) {
    client.stop();
 }
 
+/*
+Method to print the reason by which ESP32
+has been awaken from sleep
+*/
+void print_wakeup_reason(){
+  esp_sleep_wakeup_cause_t wakeup_reason;
+
+  wakeup_reason = esp_sleep_get_wakeup_cause();
+
+  switch(wakeup_reason)
+  {
+    case ESP_SLEEP_WAKEUP_EXT0 : Serial.println("Wakeup caused by external signal using RTC_IO"); break;
+    case ESP_SLEEP_WAKEUP_EXT1 : Serial.println("Wakeup caused by external signal using RTC_CNTL"); break;
+    case ESP_SLEEP_WAKEUP_TIMER : Serial.println("Wakeup caused by timer"); break;
+    case ESP_SLEEP_WAKEUP_TOUCHPAD : Serial.println("Wakeup caused by touchpad"); break;
+    case ESP_SLEEP_WAKEUP_ULP : Serial.println("Wakeup caused by ULP program"); break;
+    default : Serial.printf("Wakeup was not caused by deep sleep: %d\n",wakeup_reason); break;
+  }
+}
+
 void setup() {
   int start = millis();
   bool connected = false;
-
+  int internet_connection_retries = 0;  
+  
   // Start I2C communication
   I2CPower.begin(I2C_SDA, I2C_SCL, 400000);
 
   // Set serial monitor debugging window baud rate to 115200
   Serial.begin(115200);
+
+  //Print the wakeup reason for ESP32
+  print_wakeup_reason();
   
   pinMode(TEMPPOWER,OUTPUT);
   pinMode(MOISTUREPOWER,OUTPUT);
@@ -348,9 +389,9 @@ void setup() {
   delay(100);
   //one wire begin
   sensors.begin();
-
+#define POWER_BOOST_RETRIES 15
   Serial.print("Keep power when running from battery ");
-  int power_boost_retries = 15;
+  int power_boost_retries = POWER_BOOST_RETRIES;
   bool isOk;
   for( isOk = setPowerBoostKeepOn(1); (isOk != true) && (power_boost_retries != 0); power_boost_retries--, isOk = setPowerBoostKeepOn(1))
   {
@@ -392,24 +433,29 @@ void setup() {
     // get battery level
     float battery_voltage = get_battery_voltage();
 
-    String httpRequestData = "_appid=" + appid + "&_device="+ deviceid +"&moisture-pc="+ moisture_pc +"&battery-voltage="+battery_voltage+"&soil-temp-C="+soil_temp_C +"&air-temp-C="+air_temp_C +"&run_ms="+run_ms+"&boot-no="+boot_no;
+  //connect to the internet
+  #ifdef GSM
+    connected = GSM_start(&internet_connection_retries);
+  #endif
+  #ifdef WIFI
+    connected = WiFi_start(&internet_connection_retries);
+  #endif
+  
+  String httpRequestData = "_appid=" + appid + "&_device="+ deviceid +"&moisture-pc="+ moisture_pc +"&battery-voltage="+battery_voltage+"&soil-temp-C="+soil_temp_C +"&air-temp-C="+air_temp_C +"&run_ms="+run_ms+"&boot-no="+boot_no+"&power-boost-retries="+(POWER_BOOST_RETRIES-power_boost_retries)+"&internet-connection-retries="+internet_connection_retries;
     //Serial.println(httpRequestData);
+
   // send data
-    
-#ifdef GSM
-    connected = GSM_start();
-    if( connected == true ) {
+  if( connected == true ) {
       HTTP_Request(httpRequestData);
-      GSM_end();      
-    }
-#endif
-#ifdef WIFI
-    connected = WiFi_start();
-    if( connected == true ) {
-      HTTP_Request(httpRequestData);
-      WiFi_end();
-    }    
-#endif
+  }
+  
+  //disconnect    
+  #ifdef GSM
+    GSM_end();      
+  #endif
+  #ifdef WIFI
+    WiFi_end();
+  #endif
    
   // Configure the wake up source as timer wake up  
     esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
