@@ -2,6 +2,8 @@
 modified on Apr 10, 2021
 Modified by MehranMaleki from Arduino Examples
 https://electropeak.com/learn/interfacing-sht20-temperature-and-humidity-sensor-with-arduino/
+
+Board Arduino AVR Boards->Arduino UNO
 */
 
 #include <Wire.h>
