@@ -11,7 +11,7 @@
 #define MOISTUREPOWER 25
 
 // moisture sensor
-#define moisture_A2D A3 //wired to this pin 
+#define moisture_A2D A0 //wired to this pin 
 
 const int AirValue = 3160;   
 const int WaterValue = 1160;  
