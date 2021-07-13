@@ -10,20 +10,34 @@
   
 */
 
+//include files
+#include <OneWire.h>
+#include <DallasTemperature.h>
+#include <Wire.h>
+#include <WiFi.h>
+
+//configuration
+//the way to connect to the network
 #define GSM
 //#define WIFI
 
-#include <WiFi.h>
+#include <Wire.h>
+#include "DFRobot_SHT20.h"
 
-// configuration constants
+DFRobot_SHT20 sht20;
 
 #ifdef WIFI
+
 // WiFi credentials
 const char* ssid     = "mitchsoft";
 const char* password = "davethecat";
 #endif
 
 #ifdef GSM
+// Configure TinyGSM library
+#define TINY_GSM_MODEM_SIM800      // Modem is SIM800
+#define TINY_GSM_RX_BUFFER  1024  // Set RX buffer to 1Kb
+#include <TinyGsmClient.h>
 // GPRS credentials 
 const char apn[]      = "TM"; 
 const char gprsUser[] = ""; 
@@ -34,36 +48,39 @@ const char simPIN[]   = "";
 
 #endif
 
+// GPIO sensor power 
+#define TEMPPOWER 13
+#define MOISTUREPOWER 25
+#define HUMIDITYPOWER 32
+
+// moisture sensor
+#define moisture_A2D A0
+
+//configuration data for the sensor
+const int AirValue = 3250;   
+const int WaterValue = 1320;  
+
+// temperature sensor data wire is is on Pin 14 (I/O pin) with added 4.7K pullup)
+#define ONE_WIRE_BUS 14
+
+// refresh interval
+#define TIME_TO_SLEEP  (60)        /* Time ESP32 will go to sleep (in seconds)  */
+
 // Host details
 const char host[] = "kitwallace.co.uk"; 
 const char resource[] = "/logger/log-data.xq";        
 const int  httpPort = 80;                             
 
-String appid = "1418";    // pin for the appid -  
-String deviceid = "Tree4";   
+const String appid = "1418";    // pin for the appid -  
+const String deviceid = "Tree4";   
 
-// GPIO sensor power 
-#define TEMPPOWER 13
-#define MOISTUREPOWER 25
-
-// moisture sensor
-#define moisture_A2D A0
-
-const int AirValue = 3250;   
-const int WaterValue = 1320;  
-
-// Data wire is is on Pin 14 (I/O pin) with added 4.7K pullup)
-#define ONE_WIRE_BUS 14
 
 // battery monitoring
 #define battery_ADC 35
 
-// refresh interval
 #define uS_TO_S_FACTOR 1000000ULL     /* Conversion factor for micro seconds to seconds - cast as ULL to allow long sleeps  */
-#define TIME_TO_SLEEP  (60)        /* Time ESP32 will go to sleep (in seconds)  */
 
-// end configuration
-
+//these variables are stored in the rtc ram wich is kept powered when the board is sleeping
 RTC_DATA_ATTR int run_ms = 0;
 RTC_DATA_ATTR int boot_no = 0;
 
@@ -73,10 +90,9 @@ float get_battery_voltage() {
 }
 
 // Moisture sensor
-
 const int nReadings=7;  // must be odd
 int readings[nReadings];
-int reading_delay=10;
+const int reading_delay=10;
 
 int get_moisture_pc() {
   Serial.println(">>> get_moisture_pc");
@@ -85,7 +101,7 @@ int get_moisture_pc() {
     readings[i]=reading;
     delay(reading_delay);
    }
-   printArray(readings,nReadings);
+
    int soilMoistureValue = median(readings,nReadings);
    int soilMoisturePC = constrain(map(soilMoistureValue, AirValue, WaterValue, 0, 100), 0, 100);
    
@@ -128,8 +144,7 @@ void printArray(int *a, int n)
 }
 
 // temperature sensor
-#include <OneWire.h>
-#include <DallasTemperature.h>
+
 
 // Setup a oneWire instance to communicate with any OneWire devices
 OneWire oneWire(ONE_WIRE_BUS);
@@ -143,9 +158,13 @@ DallasTemperature sensors(&oneWire);
 #define I2C_SDA              21
 #define I2C_SCL              22
 
-#include <Wire.h>
 // I2C for SIM800 (to keep it running when powered from battery)
 TwoWire I2CPower = TwoWire(0);
+
+// I2C for the humidity sensor
+#define I2C_SDA2              (12) //green
+#define I2C_SCL2              (33) //yellow
+TwoWire I2CHumidity = TwoWire(1);
 
 bool setPowerBoostKeepOn(int en){
   I2CPower.beginTransmission(IP5306_ADDR);
@@ -164,7 +183,7 @@ bool setPowerBoostKeepOn(int en){
    
 WiFiClient client;
 
-bool WiFi_start() {
+bool WiFi_start(int *internet_connection_retries) {
   int isConnetedCnt = CONNECTION_TRIES;
 
   Serial.print("Connecting to wifi network ");
@@ -215,14 +234,12 @@ void WiFi_end() {
 // Set serial for AT commands (to SIM800 module)
 #define SerialAT Serial1
 
-// Configure TinyGSM library
-#define TINY_GSM_MODEM_SIM800      // Modem is SIM800
-#define TINY_GSM_RX_BUFFER  1024  // Set RX buffer to 1Kb
+
 
 // Define the serial console for debug prints, if needed
 //#define DUMP_AT_COMMANDS
 
-#include <TinyGsmClient.h>
+
 
 #ifdef DUMP_AT_COMMANDS
   #include <StreamDebugger.h>
@@ -232,7 +249,7 @@ void WiFi_end() {
   TinyGsm modem(SerialAT);
 #endif
 
-// TinyGSM Client for Internet connection
+// TinyGSM Client for Internet connection 
 TinyGsmClient client(modem);
 
 bool GSM_start(int *internet_connection_retries) {
@@ -293,7 +310,7 @@ void GSM_end() {
 void HTTP_Request(String httpRequestData) { 
     httpRequestData.replace(" ", "+");
     int tries = 0;
-    Serial.println("Connecting to host...");
+    Serial.print("Connecting to host...");
     while (tries < HTTP_CLIENT_CONNECT_TRIES) {
       if (client.connect(host, httpPort)) break;
       Serial.print(".");
@@ -375,6 +392,7 @@ void setup() {
   
   // Start I2C communication
   I2CPower.begin(I2C_SDA, I2C_SCL, 400000);
+  I2CHumidity.begin(I2C_SDA2, I2C_SCL2, 400000);
 
   // Set serial monitor debugging window baud rate to 115200
   Serial.begin(115200);
@@ -382,23 +400,36 @@ void setup() {
   //Print the wakeup reason for ESP32
   print_wakeup_reason();
   
+  Serial.println(String("===== Boot ") + boot_no + String(" ===== Last run took ") + run_ms + String("ms ====="));
+  
   pinMode(TEMPPOWER,OUTPUT);
   pinMode(MOISTUREPOWER,OUTPUT);
+  pinMode(HUMIDITYPOWER,OUTPUT);
   
   digitalWrite(TEMPPOWER,HIGH); // power on the temp sensors
   delay(100);
+  
   //one wire begin
   sensors.begin();
-#define POWER_BOOST_RETRIES 15
-  Serial.print("Keep power when running from battery ");
-  int power_boost_retries = POWER_BOOST_RETRIES;
-  bool isOk;
-  for( isOk = setPowerBoostKeepOn(1); (isOk != true) && (power_boost_retries != 0); power_boost_retries--, isOk = setPowerBoostKeepOn(1))
+  
+#define POWER_BOOST_RETRIES (25)
+#define POWER_BOOST_RETRY_DELAY (100)
+
+  Serial.print("Keep power when running from battery");  
+  bool isOk = setPowerBoostKeepOn(1);
+  int power_boost_retries;
+  
+  for( power_boost_retries = 0; (isOk == false) && (power_boost_retries < POWER_BOOST_RETRIES); power_boost_retries++)
   {
     Serial.print(".");
+    delay(POWER_BOOST_RETRY_DELAY);
+    isOk = setPowerBoostKeepOn(1);
   }
-    
+
+  Serial.println("");
+  
   Serial.println(String("IP5306 KeepOn ") + (isOk ? "OK" : "FAIL"));
+  Serial.println(String("Retries: ") + power_boost_retries);
       
   // get temperatures - need to test and mark to find which is which
   Serial.println("Reading temperatures...");
@@ -423,15 +454,36 @@ void setup() {
     digitalWrite(TEMPPOWER,LOW); // power off the temp sensors
    
     digitalWrite(MOISTUREPOWER,HIGH); // power on the moisture sensors
-    delay(500);  
+    delay(500); //why???
     
    // get moisture data
      int moisture_pc = get_moisture_pc();
    
-    digitalWrite(MOISTUREPOWER,LOW); // power off the moisture sensors
+    digitalWrite(MOISTUREPOWER,HIGH); // power off the moisture sensors
 
     // get battery level
     float battery_voltage = get_battery_voltage();
+
+  //get humidity
+  Serial.println("Read humidity...");
+  
+  digitalWrite(HUMIDITYPOWER,HIGH); // power on the sensor
+  //delay(500); //why???
+  
+  float humidity = 0;
+
+  sht20.initSHT20(I2CHumidity);                         // Init SHT20 Sensor
+  delay(100);
+  sht20.checkSHT20();                        // Check SHT20 Sensor
+    
+  humidity = sht20.readHumidity();
+  Serial.print("\t Humidity: ");
+    Serial.print(humidity, 1);
+    Serial.println("%");
+    
+  
+  Serial.println("Finished reading humidity: ");
+  digitalWrite(HUMIDITYPOWER,LOW); // power off the sensor
 
   //connect to the internet
   #ifdef GSM
@@ -440,9 +492,21 @@ void setup() {
   #ifdef WIFI
     connected = WiFi_start(&internet_connection_retries);
   #endif
+
+  //construct the http request data
+  String httpRequestData = "_appid=" + appid
+  + "&_device=" + deviceid
+  + "&moisture-pc=" + moisture_pc
+  + "&battery-voltage=" + battery_voltage
+  + "&soil-temp-C=" + soil_temp_C
+  + "&air-temp-C=" + air_temp_C
+  + "&run_ms=" + run_ms
+  + "&boot-no=" + boot_no
+  + "&power-boost-retries=" + power_boost_retries
+  + "&internet-connection-retries=" + internet_connection_retries
+  + "&humidity=" + humidity;
   
-  String httpRequestData = "_appid=" + appid + "&_device="+ deviceid +"&moisture-pc="+ moisture_pc +"&battery-voltage="+battery_voltage+"&soil-temp-C="+soil_temp_C +"&air-temp-C="+air_temp_C +"&run_ms="+run_ms+"&boot-no="+boot_no+"&power-boost-retries="+(POWER_BOOST_RETRIES-power_boost_retries)+"&internet-connection-retries="+internet_connection_retries;
-    //Serial.println(httpRequestData);
+  Serial.println(httpRequestData);
 
   // send data
   if( connected == true ) {
@@ -462,9 +526,12 @@ void setup() {
     
     run_ms = millis() - start;   
     boot_no += 1;
+
+  Serial.println(String("===== This run took ") + run_ms + String("ms ====="));
     
     esp_deep_sleep_start();
 }
 
 void loop() {
+  //this never runs
 }
