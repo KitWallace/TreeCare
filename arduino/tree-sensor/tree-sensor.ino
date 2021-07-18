@@ -94,8 +94,8 @@ const int nReadings=7;  // must be odd
 int readings[nReadings];
 const int reading_delay=10;
 
-int get_moisture_pc() {
-  Serial.println(">>> get_moisture_pc");
+int get_moisture() {
+  Serial.println(">>> get_moisture");
    for (int i=0;i < nReadings; i++) {
     int reading = analogRead(moisture_A2D);
     readings[i]=reading;
@@ -103,10 +103,19 @@ int get_moisture_pc() {
    }
 
    int soilMoistureValue = median(readings,nReadings);
+      
+   Serial.print("<<< get_moisture, returning ");
+   Serial.println(soilMoistureValue);
+   
+   return soilMoistureValue; 
+}
+
+int get_moisture_pc(int raw_reading) {
+  int soilMoistureValue = raw_reading;
    int soilMoisturePC = constrain(map(soilMoistureValue, AirValue, WaterValue, 0, 100), 0, 100);
    
-   Serial.print("<<< get_moisture_pc, returning ");
-   Serial.println(soilMoisturePC);
+   //Serial.print("<<< get_moisture_pc, returning ");
+   //Serial.println(soilMoisturePC);
    
    return soilMoisturePC; 
 }
@@ -341,7 +350,7 @@ void HTTP_Request(String httpRequestData) {
   //add the mac address too
   String macAddr = WiFi.macAddress();
   //Serial.println(macAddr);
-  httpRequestData = httpRequestData + "&mac="+macAddr;
+  httpRequestData = httpRequestData + "&_MAC="+macAddr;
 
   //add the number of retries
   httpRequestData = httpRequestData + "&server-connection-retries="+(tries);
@@ -412,14 +421,14 @@ void setup() {
   //one wire begin
   sensors.begin();
   
-#define POWER_BOOST_RETRIES (25)
-#define POWER_BOOST_RETRY_DELAY (100)
+#define POWER_BOOST_RETRIES (5)
+#define POWER_BOOST_RETRY_DELAY (50)
 
   Serial.print("Keep power when running from battery");  
   bool isOk = setPowerBoostKeepOn(1);
   int power_boost_retries;
   
-  for( power_boost_retries = 0; (isOk == false) && (power_boost_retries < POWER_BOOST_RETRIES); power_boost_retries++)
+  for( power_boost_retries = 0; (isOk != true) && (power_boost_retries < POWER_BOOST_RETRIES); power_boost_retries++)
   {
     Serial.print(".");
     delay(POWER_BOOST_RETRY_DELAY);
@@ -433,57 +442,48 @@ void setup() {
       
   // get temperatures - need to test and mark to find which is which
   Serial.println("Reading temperatures...");
-      sensors.requestTemperatures();
-      float soil_temp_C = sensors.getTempCByIndex(0);
-      Serial.print("soil_temp_C=");
-      Serial.println(soil_temp_C);
-      float air_temp_C = sensors.getTempCByIndex(1);
-      Serial.print("air_temp_C=");
-      Serial.println(air_temp_C);
+  sensors.requestTemperatures();
+  int soil_temp_C = constrain(sensors.getTempCByIndex(0), 0, 100);
+  Serial.print("soil_temp_C=");
+  Serial.println(soil_temp_C);
+  int air_temp_C = constrain(sensors.getTempCByIndex(1), 0, 100);
+  Serial.print("air_temp_C=");
+  Serial.println(air_temp_C);
 
-      Serial.println("After clipping");
-      soil_temp_C = constrain(soil_temp_C, 0, 100);
-      Serial.print("soil_temp_C=");
-      Serial.println(soil_temp_C);
-      air_temp_C = constrain(air_temp_C, 0, 100);
-      Serial.print("air_temp_C=");
-      Serial.println(air_temp_C);
-
-   // end temp data
+  // end temp data
    
-    digitalWrite(TEMPPOWER,LOW); // power off the temp sensors
+  digitalWrite(TEMPPOWER,LOW); // power off the temp sensors
    
-    digitalWrite(MOISTUREPOWER,HIGH); // power on the moisture sensors
-    delay(500); //why???
+  digitalWrite(MOISTUREPOWER, HIGH); // power on the moisture sensors
+  delay(500); //why???
     
-   // get moisture data
-     int moisture_pc = get_moisture_pc();
-   
-    digitalWrite(MOISTUREPOWER,HIGH); // power off the moisture sensors
-
-    // get battery level
-    float battery_voltage = get_battery_voltage();
+  // get moisture data
+  int moisture = get_moisture();
+  
+  digitalWrite(MOISTUREPOWER, LOW); // power off the moisture sensors
+  
+  // get battery level
+  float battery_voltage = get_battery_voltage();
 
   //get humidity
-  Serial.println("Read humidity...");
-  
-  digitalWrite(HUMIDITYPOWER,HIGH); // power on the sensor
+  digitalWrite(HUMIDITYPOWER, HIGH); // power on the sensor
   //delay(500); //why???
   
-  float humidity = 0;
-
   sht20.initSHT20(I2CHumidity);                         // Init SHT20 Sensor
   delay(100);
   sht20.checkSHT20();                        // Check SHT20 Sensor
     
-  humidity = sht20.readHumidity();
-  Serial.print("\t Humidity: ");
-    Serial.print(humidity, 1);
-    Serial.println("%");
+  float humidity = sht20.readHumidity();
+  Serial.print("\tHumidity: ");
+  Serial.print(humidity, 1);
+  Serial.println("%");
+
+  float humidity_temp = sht20.readTemperature();      // Read Temperature
+  Serial.print("\tTemperature: ");
+  Serial.print(humidity_temp, 1);
+  Serial.println("C");
     
-  
-  Serial.println("Finished reading humidity: ");
-  digitalWrite(HUMIDITYPOWER,LOW); // power off the sensor
+  digitalWrite(HUMIDITYPOWER, LOW); // power off the sensor
 
   //connect to the internet
   #ifdef GSM
@@ -495,17 +495,17 @@ void setup() {
 
   //construct the http request data
   String httpRequestData = "_appid=" + appid
-  + "&_device=" + deviceid
-  + "&moisture-pc=" + moisture_pc
   + "&battery-voltage=" + battery_voltage
-  + "&soil-temp-C=" + soil_temp_C
-  + "&air-temp-C=" + air_temp_C
-  + "&run_ms=" + run_ms
+  + "&last-run_ms=" + run_ms  
   + "&boot-no=" + boot_no
   + "&power-boost-retries=" + power_boost_retries
   + "&internet-connection-retries=" + internet_connection_retries
-  + "&humidity=" + humidity;
-  
+  + "&soil-temp-C=" + soil_temp_C
+  + "&air-temp-C=" + air_temp_C
+  + "&humidity-temp=" + humidity_temp
+  + "&humidity=" + humidity
+  + "&moisture=" + moisture;
+    
   Serial.println(httpRequestData);
 
   // send data
