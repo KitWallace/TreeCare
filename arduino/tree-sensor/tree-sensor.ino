@@ -15,6 +15,7 @@
 #include <DallasTemperature.h>
 #include <Wire.h>
 #include <WiFi.h>
+#include <ArduinoHttpClient.h>
 
 //configuration
 //the way to connect to the network
@@ -43,7 +44,7 @@ const char* password = "davethecat";
 #define TINY_GSM_MODEM_SIM800      // Modem is SIM800
 #define TINY_GSM_RX_BUFFER  1024  // Set RX buffer to 1Kb
 #include <TinyGsmClient.h>
-#include <ArduinoHttpClient.h>
+
 // GPRS credentials 
 const char apn[]      = "TM"; 
 const char gprsUser[] = ""; 
@@ -206,7 +207,7 @@ bool WiFi_start(int *internet_connection_retries) {
     Serial.print(ssid);
      WiFi.begin(ssid, password);
    
-     while ((WiFi.status() != WL_CONNECTED) && (isConnetedCnt >= 0)) {       
+     while ((WiFi.status() != WL_CONNECTED) && (isConnetedCnt > 0)) {       
        isConnetedCnt--;
        Serial.print(".");
        delay(CONNECTION_TRY_DELAY_MS);
@@ -216,7 +217,7 @@ bool WiFi_start(int *internet_connection_retries) {
 
   *internet_connection_retries = CONNECTION_TRIES - isConnetedCnt;
 
-    if( isConnetedCnt >= 0 ) {
+    if( isConnetedCnt != 0 ) {
     
       Serial.print("WiFi connected ");  
       Serial.print("IP address: ");
@@ -261,7 +262,6 @@ void WiFi_end() {
 
 // TinyGSM Client for Internet connection 
 TinyGsmClient client(modem);
-HttpClient    http(client, host, httpPort);
 
 bool GSM_start(int *internet_connection_retries) {
   // Set modem reset, enable, power pins - following https://github.com/Xinyuan-LilyGO/LilyGo-T-Call-SIM800/blob/master/examples/Arduino_TinyGSM/Arduino_TinyGSM.ino
@@ -291,10 +291,10 @@ bool GSM_start(int *internet_connection_retries) {
   // Restart SIM800 module, it takes quite some time
   // To skip it, call init() instead of restart()
   Serial.println("Initializing modem...");
-  //if( boot_no == 0) 
-  //else modem.init();
+  if( boot_no == 0) modem.restart();
+  else modem.init();
   // use modem.init() if you don't need the complete restart
-  modem.restart();
+  //modem.restart();
   
   // Unlock your SIM card with a PIN if needed
   if (strlen(simPIN) && modem.getSimStatus() != 3 ) {
@@ -343,7 +343,11 @@ void GSM_end() {
 #endif
 #define HTTP_CLIENT_CONNECT_TRIES 20
 #define HTTP_CLIENT_DELAY 10
-void HTTP_Request_dev(String httpRequestData) { 
+void HTTP_Request_dev(String httpRequestData) {
+
+  
+  HttpClient    http(client, host, httpPort);
+
     httpRequestData.replace(" ", "+");
 
   httpRequestData += "&httpdev=1";
@@ -361,13 +365,13 @@ void HTTP_Request_dev(String httpRequestData) {
     return;
   }
 
-  int status = http.responseStatusCode();
+  /*int status = http.responseStatusCode();
   Serial.print(F("Response status code: "));
   Serial.println(status);
   if (!status) {
     last_error = POST_DATA_BAD_STATUS;
     return;
-  }
+  }*/
 
   Serial.println(F("Response Headers:"));
   while (http.headerAvailable()) {
@@ -425,10 +429,21 @@ void HTTP_Request(String httpRequestData) {
 // Read all the lines of the reply from server and print them to Serial
   Serial.println("Response:");
 
-  while(client.available()){
+  /*while(client.available()){
     String line = client.readStringUntil('\r');
     Serial.print(line);
+  }*/
+
+   uint32_t timeout = millis();
+  while (client.connected() && millis() - timeout < 10000L) {
+    // Print available data
+    while (client.available()) {
+      char c = client.read();
+      Serial.print(c);
+      timeout = millis();
+    }
   }
+  Serial.println();
   
   Serial.println("End of response.");
   
@@ -600,7 +615,7 @@ void setup() {
 
   // send data
   if( connected == true ) {
-      HTTP_Request_dev(httpRequestData);
+      //HTTP_Request_dev(httpRequestData);
       HTTP_Request(httpRequestData);
   }
   
