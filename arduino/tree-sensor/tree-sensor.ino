@@ -1,5 +1,5 @@
 /*
-  Combined GSM and Wifi Deepsleep code for 1 moisture sennsor and 2 temperature sensors 
+  Combined GSM and Wifi Deepsleep code for 1 moisture sennsor, 2 temperature sensors and a humidity sensor.
   
   Kit Wallace
 
@@ -22,9 +22,14 @@
 //#define WIFI
 
 #include <Wire.h>
+
+#define REPORT_HUMIDITY_READINGS
+
+#ifdef REPORT_HUMIDITY_READINGS
 #include "DFRobot_SHT20.h"
 
 DFRobot_SHT20 sht20;
+#endif
 
 #ifdef WIFI
 
@@ -38,6 +43,7 @@ const char* password = "davethecat";
 #define TINY_GSM_MODEM_SIM800      // Modem is SIM800
 #define TINY_GSM_RX_BUFFER  1024  // Set RX buffer to 1Kb
 #include <TinyGsmClient.h>
+#include <ArduinoHttpClient.h>
 // GPRS credentials 
 const char apn[]      = "TM"; 
 const char gprsUser[] = ""; 
@@ -74,7 +80,6 @@ const int  httpPort = 80;
 const String appid = "1418";    // pin for the appid -  
 const String deviceid = "Tree4";   
 
-
 // battery monitoring
 #define battery_ADC 35
 
@@ -83,6 +88,8 @@ const String deviceid = "Tree4";
 //these variables are stored in the rtc ram wich is kept powered when the board is sleeping
 RTC_DATA_ATTR int run_ms = 0;
 RTC_DATA_ATTR int boot_no = 0;
+enum error_code{NO_ERROR = 0, CANT_CONNECT_TO_HOST = 1, CANT_CONNECT_TO_GSM_NETWORK = 2, CANT_CONNECT_TO_APN = 3, CANT_CONNECT_TO_GPRS = 4, CANT_POST_DATA = 5, POST_DATA_NOT_SUCCESS = 6, POST_DATA_BAD_STATUS = 7};
+RTC_DATA_ATTR error_code last_error = NO_ERROR;
 
 // voltage
 float get_battery_voltage() {
@@ -95,7 +102,7 @@ int readings[nReadings];
 const int reading_delay=10;
 
 int get_moisture() {
-  Serial.println(">>> get_moisture");
+  //Serial.println(">>> get_moisture");
    for (int i=0;i < nReadings; i++) {
     int reading = analogRead(moisture_A2D);
     readings[i]=reading;
@@ -104,8 +111,8 @@ int get_moisture() {
 
    int soilMoistureValue = median(readings,nReadings);
       
-   Serial.print("<<< get_moisture, returning ");
-   Serial.println(soilMoistureValue);
+   //Serial.print("<<< get_moisture, returning ");
+   //Serial.println(soilMoistureValue);
    
    return soilMoistureValue; 
 }
@@ -233,22 +240,16 @@ void WiFi_end() {
 
 // TTGO T-Call pins
 #define MODEM_RST            5
-#define MODEM_PWKEY          4
+#define MODEM_PWRKEY         4
 #define MODEM_POWER_ON       23
 #define MODEM_TX             27
 #define MODEM_RX             26
 
-
-
 // Set serial for AT commands (to SIM800 module)
 #define SerialAT Serial1
 
-
-
 // Define the serial console for debug prints, if needed
 //#define DUMP_AT_COMMANDS
-
-
 
 #ifdef DUMP_AT_COMMANDS
   #include <StreamDebugger.h>
@@ -260,30 +261,54 @@ void WiFi_end() {
 
 // TinyGSM Client for Internet connection 
 TinyGsmClient client(modem);
+HttpClient    http(client, host, httpPort);
 
 bool GSM_start(int *internet_connection_retries) {
-  // Set modem reset, enable, power pins
-  pinMode(MODEM_PWKEY, OUTPUT);
-  pinMode(MODEM_RST, OUTPUT);
+  // Set modem reset, enable, power pins - following https://github.com/Xinyuan-LilyGO/LilyGo-T-Call-SIM800/blob/master/examples/Arduino_TinyGSM/Arduino_TinyGSM.ino
+  #ifdef MODEM_RST
+    // Keep reset high
+    pinMode(MODEM_RST, OUTPUT);
+    digitalWrite(MODEM_RST, HIGH);
+  #endif
+
+  pinMode(MODEM_PWRKEY, OUTPUT);
   pinMode(MODEM_POWER_ON, OUTPUT);
-  digitalWrite(MODEM_PWKEY, LOW);
-  digitalWrite(MODEM_RST, HIGH);
+
+  // Turn on the Modem power first
   digitalWrite(MODEM_POWER_ON, HIGH);
+
+  // Pull down PWRKEY for more than 1 second according to manual requirements
+  digitalWrite(MODEM_PWRKEY, HIGH);
+  delay(100);
+  digitalWrite(MODEM_PWRKEY, LOW);
+  delay(1000);
+  digitalWrite(MODEM_PWRKEY, HIGH);
 
   // Set GSM module baud rate and UART pins
   SerialAT.begin(115200, SERIAL_8N1, MODEM_RX, MODEM_TX);
-  //delay(1000); - im not sure why this was needed
-
+  //delay(1000);
+  
   // Restart SIM800 module, it takes quite some time
   // To skip it, call init() instead of restart()
   Serial.println("Initializing modem...");
-  if( boot_no == 0) modem.restart();
-  else modem.init();
+  //if( boot_no == 0) 
+  //else modem.init();
   // use modem.init() if you don't need the complete restart
-
+  modem.restart();
+  
   // Unlock your SIM card with a PIN if needed
   if (strlen(simPIN) && modem.getSimStatus() != 3 ) {
     modem.simUnlock(simPIN);
+  }
+  Serial.print("Waiting for network...");
+  if (!modem.waitForNetwork(240000L)) {
+      Serial.println(" fail");
+      last_error = CANT_CONNECT_TO_GSM_NETWORK;
+  }
+  Serial.println(" OK");
+
+  if (modem.isNetworkConnected()) {
+        Serial.println("Network connected");
   }
     
   Serial.print("Connecting to APN: ");
@@ -291,6 +316,7 @@ bool GSM_start(int *internet_connection_retries) {
   if (!modem.gprsConnect(apn, gprsUser, gprsPass)) {
        Serial.println(" gprsConnect failed");
        return false;
+       last_error = CANT_CONNECT_TO_APN;
   }
 
   if (modem.isGprsConnected()) { 
@@ -301,6 +327,7 @@ bool GSM_start(int *internet_connection_retries) {
   else
   {
     *internet_connection_retries = -1;
+    last_error = CANT_CONNECT_TO_GPRS;
     return false;
   }
 }
@@ -316,64 +343,99 @@ void GSM_end() {
 #endif
 #define HTTP_CLIENT_CONNECT_TRIES 20
 #define HTTP_CLIENT_DELAY 10
+void HTTP_Request_dev(String httpRequestData) { 
+    httpRequestData.replace(" ", "+");
+
+  httpRequestData += "&httpdev=1";
+
+  httpRequestData = "?" + httpRequestData;
+
+    Serial.println(httpRequestData);
+
+  Serial.print(F("Performing HTTP GET request... "));
+  int err = http.get(resource + httpRequestData);
+  
+  if (err != 0) {
+    Serial.println(F("failed to connect"));
+    last_error = CANT_POST_DATA;
+    return;
+  }
+
+  int status = http.responseStatusCode();
+  Serial.print(F("Response status code: "));
+  Serial.println(status);
+  if (!status) {
+    last_error = POST_DATA_BAD_STATUS;
+    return;
+  }
+
+  Serial.println(F("Response Headers:"));
+  while (http.headerAvailable()) {
+    String headerName  = http.readHeaderName();
+    String headerValue = http.readHeaderValue();
+    Serial.println("    " + headerName + " : " + headerValue);
+  }
+
+  int length = http.contentLength();
+  if (length >= 0) {
+    Serial.print(F("Content length is: "));
+    Serial.println(length);
+  }
+  if (http.isResponseChunked()) {
+    Serial.println(F("The response is chunked"));
+  }
+
+  String body = http.responseBody();
+  Serial.println(F("Response:"));
+  Serial.println(body);
+  if( body.indexOf("OK") == -1 )
+  {
+    Serial.println(F("The response was not OK"));
+    last_error = POST_DATA_NOT_SUCCESS;
+  }
+
+  Serial.print(F("Body length is: "));
+  Serial.println(body.length());
+
+  // Shutdown
+
+  http.stop();
+   
+}
+
 void HTTP_Request(String httpRequestData) { 
     httpRequestData.replace(" ", "+");
     int tries = 0;
-    Serial.print("Connecting to host...");
-    while (tries < HTTP_CLIENT_CONNECT_TRIES) {
+    while (tries < 10) {
       if (client.connect(host, httpPort)) break;
       Serial.print(".");
-      tries++;
-      delay(HTTP_CLIENT_DELAY);
+      tries+=1;
+      delay(100);
    }
 
-  //exit if we cant connect to the host
-  if ( tries >= HTTP_CLIENT_CONNECT_TRIES ) {
-    Serial.println(" not connected");
-  }
-  else
-  {
-    Serial.println(" Connected");
-  
-//get the signal strength
-#ifdef GSM
-   int signal_quality = modem.getSignalQuality();
-   // add the signal quality on to the data
-  httpRequestData = httpRequestData + "&signal-quality="+signal_quality;
-#endif
-#ifdef WIFI
-   int rssi = WiFi.RSSI();   
-   // add the signal quality on to the data
-  httpRequestData = httpRequestData + "&rssi="+rssi;
-#endif
+   httpRequestData += "&httpdev=0";
 
-  //add the mac address too
-  String macAddr = WiFi.macAddress();
-  //Serial.println(macAddr);
-  httpRequestData = httpRequestData + "&_MAC="+macAddr;
-
-  //add the number of retries
-  httpRequestData = httpRequestData + "&server-connection-retries="+(tries);
 //  construct http request
-    String httpRequest = String("GET ") + resource +"?" + httpRequestData + " HTTP/1.1\r\n" +
+    String httpRequest = String("GET ") + resource + "?" + httpRequestData + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" + 
                "Connection: close\r\n\r\n";
    Serial.println(httpRequest);
    client.print(httpRequest);
   
 // Read all the lines of the reply from server and print them to Serial
-   
-  /*while(client.available()){
+  Serial.println("Response:");
+
+  while(client.available()){
     String line = client.readStringUntil('\r');
     Serial.print(line);
-  }*/
-
   }
+  
+  Serial.println("End of response.");
+  
 //  Serial.println();
-   //Serial.println("closing connection");
+   Serial.println("closing connection");
    client.stop();
 }
-
 /*
 Method to print the reason by which ESP32
 has been awaken from sleep
@@ -401,7 +463,9 @@ void setup() {
   
   // Start I2C communication
   I2CPower.begin(I2C_SDA, I2C_SCL, 400000);
-  I2CHumidity.begin(I2C_SDA2, I2C_SCL2, 400000);
+  #ifdef REPORT_HUMIDITY_READINGS
+    I2CHumidity.begin(I2C_SDA2, I2C_SCL2, 400000);
+  #endif
 
   // Set serial monitor debugging window baud rate to 115200
   Serial.begin(115200);
@@ -410,19 +474,9 @@ void setup() {
   print_wakeup_reason();
   
   Serial.println(String("===== Boot ") + boot_no + String(" ===== Last run took ") + run_ms + String("ms ====="));
-  
-  pinMode(TEMPPOWER,OUTPUT);
-  pinMode(MOISTUREPOWER,OUTPUT);
-  pinMode(HUMIDITYPOWER,OUTPUT);
-  
-  digitalWrite(TEMPPOWER,HIGH); // power on the temp sensors
-  delay(100);
-  
-  //one wire begin
-  sensors.begin();
-  
-#define POWER_BOOST_RETRIES (5)
-#define POWER_BOOST_RETRY_DELAY (50)
+
+  #define POWER_BOOST_RETRIES (5)
+  #define POWER_BOOST_RETRY_DELAY (50)
 
   Serial.print("Keep power when running from battery");  
   bool isOk = setPowerBoostKeepOn(1);
@@ -439,16 +493,28 @@ void setup() {
   
   Serial.println(String("IP5306 KeepOn ") + (isOk ? "OK" : "FAIL"));
   Serial.println(String("Retries: ") + power_boost_retries);
-      
+  
+  pinMode(TEMPPOWER,OUTPUT);
+  pinMode(MOISTUREPOWER,OUTPUT);
+  #ifdef REPORT_HUMIDITY_READINGS
+    pinMode(HUMIDITYPOWER,OUTPUT);
+  #endif
+  
+  digitalWrite(TEMPPOWER,HIGH); // power on the temp sensors
+  delay(100);
+  
+  //one wire begin
+  sensors.begin();
+
   // get temperatures - need to test and mark to find which is which
   Serial.println("Reading temperatures...");
   sensors.requestTemperatures();
   int soil_temp_C = constrain(sensors.getTempCByIndex(0), 0, 100);
-  Serial.print("soil_temp_C=");
-  Serial.println(soil_temp_C);
+  //Serial.print("soil_temp_C=");
+  //Serial.println(soil_temp_C);
   int air_temp_C = constrain(sensors.getTempCByIndex(1), 0, 100);
-  Serial.print("air_temp_C=");
-  Serial.println(air_temp_C);
+  //Serial.print("air_temp_C=");
+  //Serial.println(air_temp_C);
 
   // end temp data
    
@@ -465,26 +531,28 @@ void setup() {
   // get battery level
   float battery_voltage = get_battery_voltage();
 
-  //get humidity
-  digitalWrite(HUMIDITYPOWER, HIGH); // power on the sensor
-  //delay(500); //why???
+  #ifdef REPORT_HUMIDITY_READINGS
+    //get humidity
+    digitalWrite(HUMIDITYPOWER, HIGH); // power on the sensor
+    //delay(500); //why???
+    
+    sht20.initSHT20(I2CHumidity);                         // Init SHT20 Sensor
+    delay(100);
+    sht20.checkSHT20();                        // Check SHT20 Sensor
+      
+    float humidity = sht20.readHumidity();
+    //Serial.print("\tHumidity: ");
+    //Serial.print(humidity, 1);
+    //Serial.println("%");
   
-  sht20.initSHT20(I2CHumidity);                         // Init SHT20 Sensor
-  delay(100);
-  sht20.checkSHT20();                        // Check SHT20 Sensor
-    
-  float humidity = sht20.readHumidity();
-  Serial.print("\tHumidity: ");
-  Serial.print(humidity, 1);
-  Serial.println("%");
-
-  float humidity_temp = sht20.readTemperature();      // Read Temperature
-  Serial.print("\tTemperature: ");
-  Serial.print(humidity_temp, 1);
-  Serial.println("C");
-    
-  digitalWrite(HUMIDITYPOWER, LOW); // power off the sensor
-
+    float humidity_temp = sht20.readTemperature();      // Read Temperature
+    //Serial.print("\tTemperature: ");
+    //Serial.print(humidity_temp, 1);
+    //Serial.println("C");
+      
+    digitalWrite(HUMIDITYPOWER, LOW); // power off the sensor
+  #endif
+  
   //connect to the internet
   #ifdef GSM
     connected = GSM_start(&internet_connection_retries);
@@ -502,14 +570,37 @@ void setup() {
   + "&internet-connection-retries=" + internet_connection_retries
   + "&soil-temp-C=" + soil_temp_C
   + "&air-temp-C=" + air_temp_C
-  + "&humidity-temp=" + humidity_temp
-  + "&humidity=" + humidity
+  #ifdef REPORT_HUMIDITY_READINGS
+    + "&humidity-temp=" + humidity_temp
+    + "&humidity=" + humidity
+  #endif
   + "&moisture=" + moisture;
-    
-  Serial.println(httpRequestData);
+  
+  //add the mac address too
+  String macAddr = WiFi.macAddress();
+  //Serial.println(macAddr);
+  httpRequestData = httpRequestData + "&_MAC="+macAddr;
+  
+  //add the last error
+  httpRequestData = httpRequestData + "&last-error="+last_error;
+  
+  #ifdef GSM
+    int signal_quality = modem.getSignalQuality();
+    // add the signal quality on to the data
+    httpRequestData = httpRequestData + "&signal-quality="+signal_quality;
+  #endif
+  
+  #ifdef WIFI
+    int rssi = WiFi.RSSI();   
+    // add the signal quality on to the data
+    httpRequestData = httpRequestData + "&rssi="+rssi;
+  #endif
+
+  //Serial.println(httpRequestData);
 
   // send data
   if( connected == true ) {
+      HTTP_Request_dev(httpRequestData);
       HTTP_Request(httpRequestData);
   }
   
@@ -522,14 +613,16 @@ void setup() {
   #endif
    
   // Configure the wake up source as timer wake up  
-    esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-    
-    run_ms = millis() - start;   
-    boot_no += 1;
+  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  
+  run_ms = millis() - start;   
+  boot_no += 1;
 
   Serial.println(String("===== This run took ") + run_ms + String("ms ====="));
+
+  //put modem to sleep?
     
-    esp_deep_sleep_start();
+  esp_deep_sleep_start();
 }
 
 void loop() {
