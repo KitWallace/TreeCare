@@ -19,8 +19,8 @@
 
 //configuration
 //the way to connect to the network
-#define GSM
-//#define WIFI
+//#define GSM
+#define WIFI
 
 #include <Wire.h>
 
@@ -89,7 +89,7 @@ const String deviceid = "Tree4";
 //these variables are stored in the rtc ram wich is kept powered when the board is sleeping
 RTC_DATA_ATTR int run_ms = 0;
 RTC_DATA_ATTR int boot_no = 0;
-enum error_code{NO_ERROR = 0, CANT_CONNECT_TO_HOST = 1, CANT_CONNECT_TO_GSM_NETWORK = 2, CANT_CONNECT_TO_APN = 3, CANT_CONNECT_TO_GPRS = 4, CANT_POST_DATA = 5, POST_DATA_NOT_SUCCESS = 6, POST_DATA_BAD_STATUS = 7};
+enum error_code{NO_ERROR = 0, CANT_CONNECT_TO_HOST = 1, CANT_CONNECT_TO_GSM_NETWORK = 2, CANT_CONNECT_TO_APN = 3, CANT_CONNECT_TO_GPRS = 4, CANT_POST_DATA = 5, POST_DATA_NOT_SUCCESS = 6, POST_DATA_BAD_STATUS = 7, CANT_CONNTECT_TO_WIFI = 8 };
 RTC_DATA_ATTR error_code last_error = NO_ERROR;
 
 // voltage
@@ -195,8 +195,8 @@ bool setPowerBoostKeepOn(int en){
 }
 
 #ifdef WIFI
-#define CONNECTION_TRIES 20
-#define CONNECTION_TRY_DELAY_MS 50
+#define CONNECTION_TRIES 40
+#define CONNECTION_TRY_DELAY_MS 200
    
 WiFiClient client;
 
@@ -226,7 +226,8 @@ bool WiFi_start(int *internet_connection_retries) {
     }
     else
     {
-      Serial.print("WiFi NOT connected ");  
+      Serial.print("WiFi NOT connected ");
+      last_error = CANT_CONNTECT_TO_WIFI;
       return false;
     }
     
