@@ -116,16 +116,16 @@ void setup() {
   //one wire begin
   sensors.begin();
   
-  // get MAC id 
-  
-  String macAddr = WiFi.macAddress();
-  Serial.print("MAC address "); Serial.println(macAddr);
 
 }
 
 void loop() {
  
   Serial.println();  
+   // get MAC id 
+  
+   String macAddr = WiFi.macAddress();
+   Serial.print("MAC address "); Serial.println(macAddr);
 
   // get temperatures - need to test and mark to find which is which
       sensors.requestTemperatures();
@@ -133,7 +133,7 @@ void loop() {
 
       Serial.print("Soil Temp "); Serial.println(soil_temp_C);
       float air_temp_C = sensors.getTempCByIndex(1);
-      Serial.print("Air Temp "); Serial.println(air_temp_C)     
+      Serial.print("Air Temp "); Serial.println(air_temp_C);     
      
    // get moisture data
      int moisture_pc = get_moisture_pc();
