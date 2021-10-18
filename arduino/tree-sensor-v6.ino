@@ -326,8 +326,9 @@ void setup() {
       String params; 
       get_sensor_data(params);
       get_system_data(params);
+      if (i < warmup_count -1) params += "&test=test";  // all but last tagged as test data
       HTTP_POST(params);
-      run_ms = millis() - start;   
+      run_ms = millis() - start;   // to be reported next time
       delay (warmup_delay);
     }
     GSM_end();
