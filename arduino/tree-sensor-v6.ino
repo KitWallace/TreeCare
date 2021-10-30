@@ -321,10 +321,9 @@ void setup() {
   
   int start = millis();
   if (boot_no == 0) {
-    start = millis();
     GSM_start();
     for (int i=0;i<warmup_count;i++) {
-      int start = millis();
+      start = millis();
       String params; 
       get_sensor_data(params);
       get_system_data(params);
