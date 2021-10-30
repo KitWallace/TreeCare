@@ -2,6 +2,7 @@
   Tree sensor V6
   
   Kit Wallace
+
   17 Oct 2021
  
   see  https://kitwallace.tumblr.com/tagged/moisture
@@ -268,10 +269,11 @@ void get_sensor_data(String& str) {
   // temperatures
   
   digitalWrite(TEMPPOWER,HIGH); // power on the temp sensors
-  delay(100);
-
+ 
   //one wire begin
    sensors.begin();
+   delay(500);
+
 // get temperatures - need to test and mark to find which is which
       sensors.requestTemperatures();
       float soil_temp_C = sensors.getTempCByIndex(0);
@@ -285,7 +287,7 @@ void get_sensor_data(String& str) {
   
  // get moisture reading
    digitalWrite(MOISTUREPOWER,HIGH); // power on the moisture sensors
-
+   delay(500);
     int moisture_reading = get_moisture_reading();
      SerialMon.print("Moisture Reading ");SerialMon.println(moisture_reading);
 
@@ -319,22 +321,22 @@ void setup() {
   
   int start = millis();
   if (boot_no == 0) {
-    int start = millis();
+    start = millis();
     GSM_start();
     for (int i=0;i<warmup_count;i++) {
       int start = millis();
       String params; 
       get_sensor_data(params);
       get_system_data(params);
-      if (i < warmup_count -1) params += "&test=test";  // all but last tagged as test data
+      if (i < warmup_count -1) params += "&test=test";  // all but last will be recorded as test data
       HTTP_POST(params);
-      run_ms = millis() - start;   // to be reported next time
+      run_ms = millis() - start;   
       delay (warmup_delay);
     }
     GSM_end();
   }
   else {
-      GSM_start();
+     GSM_start();
       String params; 
       get_sensor_data(params);
       get_system_data(params);
