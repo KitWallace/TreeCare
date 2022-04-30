@@ -36,7 +36,7 @@ declare function graph:data-in-range($deviceid,$fieldid, $start as xs:dateTime ,
               for $record in $log/record
               let $val := $record/*[name(.)=$fieldid]
               where exists($val) and $record/ts >= $start and $record/ts <= $end
-              order by $record/ts ascending
+ (:             order by $record/ts ascending  :)
               return element record {
                                      attribute ts {$record/ts/string()},
                                      attribute field {$fieldid},
@@ -127,7 +127,7 @@ declare function graph:data-line ($data, $start as xs:dateTime,$end as xs:dateTi
 };
 declare function graph:events($device, $field, $start as xs:dateTime ,$end as xs:dateTime ) {
    for $event in $dlog:events/event
-   where $event/deviceid=$device/deviceid and (empty($event/field) or $event/field = $field/id)
+   where $event/deviceid=$device/id and (empty($event/field) or $event/field = $field/id)
                                and $event/ts >=$start and $event/ts <= $end
    return $event
 };
@@ -161,7 +161,7 @@ declare function graph:show-graph($device,$field,$start,$end,$axis-x-inset,$xsca
      let $yunit := $field/unit
      let $decimals := ($field/decimals, 0)[1]
      let $yaxis :=  graph:y-axis($ymin,$ymax,$yinc,$decimals,$yunit,$fontsize,$axis-x-inset,$width,$height)
-     let $data := graph:data-in-range($device/deviceid,$field/id,$start,$end) 
+     let $data := graph:data-in-range($device/id,$field/id,$start,$end) 
      let $yscale := $yaxis/yscale
      let $stroke-width := 2
      return
@@ -225,7 +225,7 @@ declare function graph:dual-field-graph($device1, $field1, $device2, $field2, $c
            <h3>{$device1/name/string()} : {$field1/title/string()}  ({$field1/unit/string()}) <span style="color:{$field1/colour}"> _____ </span> and 
             {if ($device1 != $device2)
              then 
-              <span><a  target="_blank" class="external" href="?deviceid={$device2/deviceid}&amp;mode=graph">{$device2/name/string()}</a>:</span> 
+              <span><a  target="_blank" class="external" href="?id={$device2/id}&amp;mode=graph">{$device2/name/string()}</a>:</span> 
              else ()
             }
            {$field2/title/string()}({$field2/unit/string()}) <span style="color:{$colour2}"> _____ </span> 
