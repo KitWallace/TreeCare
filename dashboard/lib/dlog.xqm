@@ -1,14 +1,25 @@
 module namespace dlog = "http://kitwallace.me/lib/dlog";
 import module namespace ui="http://kitwallace.me/ui" at "/db/lib/ui.xqm";
 
-declare variable $dlog:root := "https://treecarers.org.uk/";
+declare variable $dlog:root := "https://kitwallace.co.uk/logger/";
 declare variable $dlog:dbroot := "/db/apps/logger/";
 declare variable $dlog:appid := "1418";
 declare variable $dlog:alert-job := "log-alerts.xq";
 declare variable $dlog:weather-job := "get-weather.xq";
-declare variable $dlog:events := doc("../logs/events.xml")/events;
+declare variable $dlog:events := doc("../data/events.xml")/events;
 declare variable $dlog:model := doc("../ref/model.xml")/model;
+declare variable $dlog:devices := doc("../sensors/devices-2.xml")/configuration/devices;
+declare variable $dlog:fields := doc("../sensors/devices-2.xml")/configuration/fields;
+declare variable $dlog:logs := "/db/apps/logger/logs/";
+
 declare variable $dlog:archive-path := "/db/apps/logger/archive";
+declare variable $dlog:xmlser :=
+<output:serialization-parameters
+   xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization" >
+  <output:method value="xml"/>
+  <output:version value="1.0"/>
+  <output:indent value="yes"/>
+</output:serialization-parameters>;
 
 declare function dlog:decimal-digits($f) {
     dlog:decimal-digits($f,0)
@@ -21,14 +32,19 @@ declare function dlog:decimal-digits($f,$n) {
 };
 
 declare function dlog:devices() {
-   doc("../sensors/devices.xml")/devices/device
+   $dlog:devices/device
 };
+
 declare function dlog:device($deviceid) {
-   dlog:devices()[deviceid=$deviceid]
+   $dlog:devices/device[id=$deviceid]
+};
+
+declare function dlog:device-at-MAC($MAC) {
+   $dlog:devices/device[MAC=$MAC]
 };
 
 declare function dlog:fields() {
-   doc("../sensors/devices.xml")//fieldset/field
+   $dlog:fields/field
 };
 
 declare function dlog:field($fieldid) {
@@ -36,13 +52,7 @@ declare function dlog:field($fieldid) {
 };
 
 declare function dlog:log($deviceid) {
-   let $logs := collection("/db/apps/logger/logs/")/log[@id=$deviceid]
-   return
-     element log {
-         for $record in $logs/*
-         order by $record/ts
-         return $record
-     }
+   collection("/db/apps/logger/logs/")/log[@id=$deviceid]
 };
 
 (:~
