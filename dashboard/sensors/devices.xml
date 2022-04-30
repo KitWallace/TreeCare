@@ -1,0 +1,1047 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <fields>
+        <field>
+            <id>moisture</id>
+            <title>Raw moisture</title>
+            <min>0</min>
+            <max>3000</max>
+            <interval>500</interval>
+            <colour>red</colour>
+        </field>
+        <field>
+            <id>moisture-pc</id>
+            <title>Moisture</title>
+            <unit>%</unit>
+            <min>0</min>
+            <max>100</max>
+            <interval>10</interval>
+            <colour>lightblue</colour>
+            <bands>
+                <band threshold="90">
+                    <colour>darkgreen</colour>
+                    <text>wet</text>
+                </band>
+                <band threshold="60">
+                    <colour>green</colour>
+                    <text>very moist</text>
+                </band>
+                <band threshold="40">
+                    <colour>palegreen</colour>
+                    <text>moist</text>
+                </band>
+                <band threshold="2">
+                    <colour>orange</colour>
+                    <text>dry</text>
+                </band>
+                <band threshold="0">
+                    <colour>grey</colour>
+                    <text>out</text>
+                </band>
+            </bands>
+        </field>
+        <field>
+            <id>moisture-pc2</id>
+            <title>Moisture</title>
+            <unit>%</unit>
+            <min>0</min>
+            <max>100</max>
+            <interval>10</interval>
+            <colour>lightblue</colour>
+            <bands>
+                <band threshold="90">
+                    <colour>darkgreen</colour>
+                    <text>wet</text>
+                </band>
+                <band threshold="60">
+                    <colour>green</colour>
+                    <text>very moist</text>
+                </band>
+                <band threshold="40">
+                    <colour>palegreen</colour>
+                    <text>moist</text>
+                </band>
+                <band threshold="2">
+                    <colour>orange</colour>
+                    <text>dry</text>
+                </band>
+                <band threshold="0">
+                    <colour>grey</colour>
+                    <text>out</text>
+                </band>
+            </bands>
+        </field>
+        <field>
+            <id>battery-voltage</id>
+            <title>Battery Level</title>
+            <unit>volt</unit>
+            <min>3</min>
+            <max>4.4</max>
+            <interval>0.2</interval>
+            <decimals>1</decimals>
+            <colour>black</colour>
+            <bands>
+                <band threshold="3.7">
+                    <colour>green</colour>
+                    <text>good</text>
+                </band>
+                <band threshold="3.5">
+                    <colour>orange</colour>
+                    <text>low</text>
+                </band>
+                <band threshold="0">
+                    <colour>red</colour>
+                    <text>dead</text>
+                </band>
+            </bands>
+        </field>
+        <field>
+            <id>temp-C</id>
+            <title>Soil Temperature</title>
+            <unit>°C</unit>
+            <min>-5</min>
+            <max>45</max>
+            <interval>5</interval>
+            <colour>orange</colour>
+        </field>
+        <field>
+            <id>soil-temp-C</id>
+            <title>Soil Temp</title>
+            <unit>°C</unit>
+            <min>-5</min>
+            <max>45</max>
+            <interval>5</interval>
+            <colour>orange</colour>
+        </field>
+        <field>
+            <id>air-temp-C</id>
+            <title>Air Temp</title>
+            <unit>°C</unit>
+            <min>-5</min>
+            <max>45</max>
+            <interval>5</interval>
+            <colour>red</colour>
+        </field>
+        <field>
+            <id>humidity-temp</id>
+            <title>Humidity sensor temp</title>
+            <unit>°C</unit>
+            <min>-5</min>
+            <max>45</max>
+            <interval>5</interval>
+            <colour>red</colour>
+        </field>
+        <field>
+            <id>humidity</id>
+            <title>Humidity</title>
+            <unit>%</unit>
+            <min>0</min>
+            <max>100</max>
+            <interval>10</interval>
+            <colour>purple</colour>
+        </field>
+        <field>
+            <id>rainfall</id>
+            <title>Hourly Rainfall</title>
+            <unit>mm</unit>
+            <min>0</min>
+            <max>10</max>
+            <interval>1</interval>
+            <colour>blue</colour>
+        </field>
+        <field>
+            <id>UV</id>
+            <title>light level</title>
+            <unit>W/m<sup>2</sup>
+            </unit>
+            <min>0</min>
+            <max>10</max>
+            <interval>1</interval>
+            <colour>red</colour>
+        </field>
+        <field>
+            <id>baro</id>
+            <title>Barometric Pressure</title>
+            <unit>mb</unit>
+            <min>980</min>
+            <max>1040</max>
+            <interval>10</interval>
+            <colour>pink</colour>
+        </field>
+        <field>
+            <id>rssi</id>
+            <title>WiFi RSSI</title>
+            <unit>db</unit>
+            <min>-100</min>
+            <max>0</max>
+            <interval>10</interval>
+            <colour>brown</colour>
+            <link>https://www.arduino.cc/en/Reference/WiFiRSSI</link>
+        </field>
+        <field>
+            <id>signal-quality</id>
+            <title>Signal Quality</title>
+            <min>0</min>
+            <max>25</max>
+            <interval>5</interval>
+            <colour>brown</colour>
+        </field>
+        <field>
+            <id>run_ms</id>
+            <title>Run time</title>
+            <unit>ms</unit>
+            <min>15000</min>
+            <max>40000</max>
+            <interval>5000</interval>
+            <colour>purple</colour>
+        </field>
+        <field>
+            <id>ms</id>
+            <title>Sample time</title>
+            <unit>ms</unit>
+            <min>0</min>
+            <max>200000</max>
+            <interval>20000</interval>
+            <colour>black</colour>
+        </field>
+        <field>
+            <id>seconds</id>
+            <title>Sample time</title>
+            <unit>sec</unit>
+            <min>0</min>
+            <max>250</max>
+            <interval>50</interval>
+            <colour>black</colour>
+        </field>
+        <field>
+            <id>Grid</id>
+            <title>Grid current</title>
+            <unit>amp</unit>
+            <min>0</min>
+            <max>2</max>
+            <interval>0.5</interval>
+            <colour>red</colour>
+            <decimals>1</decimals>
+        </field>
+        <field>
+            <id>Corrected_Grid</id>
+            <title>Corrected Grid current</title>
+            <unit>amp</unit>
+            <min>-2</min>
+            <max>2</max>
+            <interval>0.5</interval>
+            <decimals>1</decimals>
+            <colour>purple</colour>
+        </field>
+        <field>
+            <id>Power_Used</id>
+            <title>Power used</title>
+            <unit>watt</unit>
+            <min>0</min>
+            <max>3</max>
+            <interval>0.5</interval>
+            <colour>blue</colour>
+            <decimals>1</decimals>
+        </field>
+        <field>
+            <id>Solar</id>
+            <title>Solar current</title>
+            <unit>amp</unit>
+            <min>0</min>
+            <max>3</max>
+            <interval>0.5</interval>
+            <colour>green</colour>
+            <decimals>1</decimals>
+        </field>
+        <field>
+            <id>current</id>
+            <title>Current</title>
+            <unit>amp</unit>
+            <min>0</min>
+            <max>20</max>
+            <interval>2</interval>
+            <colour>red</colour>
+        </field>
+        <field>
+            <id>watts</id>
+            <title>Power</title>
+            <unit>milliwatt</unit>
+            <min>0</min>
+            <max>6000</max>
+            <interval>1000</interval>
+            <colour>blue</colour>
+        </field>
+        <field>
+            <id>boot-no</id>
+            <title>Boot No</title>
+            <min>0</min>
+            <max>3000</max>
+            <interval>500</interval>
+            <colour>blue</colour>
+        </field>
+    </fields>
+    <devices>
+        <device>
+            <id>Tree1</id>
+            <name>Codrington Katsura</name>
+            <treeid>MCDA-016</treeid>
+            <location>BS7</location>
+            <refresh>120</refresh>
+            <MAC>2C:F4:32:50:15:5C</MAC>
+            <device-alert-email>mark.cd.ashdown@gmail.com</device-alert-email>
+            <alert-interval>6</alert-interval>
+            <active/>
+            <fields>
+                <field>
+                    <id>moisture-pc</id>
+                    <compute>
+                        <method>convert-moisture</method>
+                        <parameter id="air">3132</parameter>
+                        <parameter id="water">1300</parameter>
+                    </compute>
+                    <trigger>
+                        <min>20</min>
+                        <warning>Too dry</warning>
+                    </trigger>
+                    <compare>
+                        <device>weather</device>
+                        <field>rainfall</field>
+                        <colour>navy</colour>
+                    </compare>
+                </field>
+                <field>
+                    <id>air-temp-C</id>
+                    <compare>
+                        <device>weather</device>
+                        <field>air-temp-C</field>
+                        <colour>blue</colour>
+                    </compare>
+                </field>
+                <field>
+                    <id>soil-temp-C</id>
+                    <compare>
+                        <device>Tree5</device>
+                        <field>soil-temp-C</field>
+                        <colour>blue</colour>
+                    </compare>
+                </field>
+                <field>
+                    <id>battery-voltage</id>
+                    <trigger>
+                        <min>3.6</min>
+                        <warning>Low battery</warning>
+                    </trigger>
+                </field>
+                <field>
+                    <id>signal-quality</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>run_ms</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>boot-no</id>
+                    <nograph/>
+                </field>
+            </fields>
+            <alert-time>2022-04-30T17:00:00.123+01:00</alert-time>
+            <active/>
+        </device>
+        <device>
+            <id>Tree2</id>
+            <name>MS Ginkgo</name>
+            <location>Morley Square</location>
+            <treeid>MS-44</treeid>
+            <board-version>V1.3</board-version>
+            <device-alert-email>kit.wallace@gmail.com</device-alert-email>
+            <alert-interval>6</alert-interval>
+            <refresh>120</refresh>
+            <active/>
+            <fields>
+                <field>
+                    <id>moisture-pc</id>
+                    <trigger>
+                        <min>20</min>
+                        <email>kit.wallace@gmail.com</email>
+                        <warning>Too dry</warning>
+                    </trigger>
+                    <compare>
+                        <device>weather</device>
+                        <field>rainfall</field>
+                        <colour>navy</colour>
+                    </compare>
+                </field>
+                <field>
+                    <id>air-temp-C</id>
+                    <compare>
+                        <device>weather</device>
+                        <field>air-temp-C</field>
+                        <colour>blue</colour>
+                    </compare>
+                </field>
+                <field>
+                    <id>soil-temp-C</id>
+                    <compare>
+                        <device>Tree2</device>
+                        <field>air-temp-C</field>
+                        <colour>blue</colour>
+                    </compare>
+                </field>
+                <field>
+                    <id>battery-voltage</id>
+                </field>
+                <field>
+                    <id>signal-quality</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>run_ms</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>boot-no</id>
+                    <nograph/>
+                </field>
+            </fields>
+            <alert-time>2022-04-30T17:00:00.123+01:00</alert-time>
+        </device>
+        <device>
+            <id>Tree3</id>
+            <name>Tiny Forest</name>
+            <sitecode>OTPC-21-012</sitecode>
+            <refresh>120</refresh>
+            <board-version>V1.4</board-version>
+            <MAC>24:6F:28:45:2D:4C</MAC>
+            <device-alert-email>kit.wallace@gmail.com</device-alert-email>
+            <alert-interval>6</alert-interval>
+            <fields>
+                <field>
+                    <id>moisture-pc</id>
+                    <compare>
+                        <device>weather</device>
+                        <field>rainfall</field>
+                        <colour>navy</colour>
+                    </compare>
+                    <compute>
+                        <method>convert-moisture</method>
+                        <parameter id="air">3240</parameter>
+                        <parameter id="water">1250</parameter>
+                    </compute>
+                </field>
+                <field>
+                    <id>air-temp-C</id>
+                    <compare>
+                        <device>weather</device>
+                        <field>air-temp-C</field>
+                        <colour>blue</colour>
+                    </compare>
+                </field>
+                <field>
+                    <id>soil-temp-C</id>
+                </field>
+                <field>
+                    <id>battery-voltage</id>
+                </field>
+                <field>
+                    <id>signal-quality</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>run_ms</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>boot-no</id>
+                    <nograph/>
+                </field>
+            </fields>
+        </device>
+        <device>
+            <id>Tree4</id>
+            <name>Ian's sensor</name>
+            <refresh>120</refresh>
+            <device-alert-email>mitch_work@hotmail.com</device-alert-email>
+            <board-version>V1.4</board-version>
+            <MAC>AC:67:B2:F5:70:BC</MAC>
+            <fields>
+                <field>
+                    <id>moisture</id>
+                </field>
+                <field>
+                    <id>moisture-pc2</id>
+                    <compute>convert-moisture</compute>
+                    <air>3250</air>
+                    <water>1320</water>
+                </field>
+                <field>
+                    <id>battery-voltage</id>
+                </field>
+                <field>
+                    <id>air-temp-C</id>
+                    <compare>
+                        <device>Tree4</device>
+                        <field>humidity-temp</field>
+                        <colour>blue</colour>
+                    </compare>
+                </field>
+                <field>
+                    <id>soil-temp-C</id>
+                </field>
+                <field>
+                    <id>humidity</id>
+                    <compare>
+                        <device>weather</device>
+                        <field>humidity</field>
+                        <colour>navy</colour>
+                    </compare>
+                </field>
+                <field>
+                    <id>signal-quality</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>run_ms</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>boot-no</id>
+                    <nograph/>
+                </field>
+            </fields>
+        </device>
+        <device>
+            <id>Tree5</id>
+            <name>Codrington Weeping Birch</name>
+            <treeid>Potted</treeid>
+            <location>BS7</location>
+            <refresh>120</refresh>
+            <MAC>24:6F:28:D0:11:EC</MAC>
+            <device-alert-email>mark.cd.ashdown@gmail.com</device-alert-email>
+            <alert-interval>6</alert-interval>
+            <fields>
+                <field>
+                    <id>moisture-pc</id>
+                    <compute>
+                        <method>convert-moisture</method>
+                        <parameter id="air">3060</parameter>
+                        <parameter id="water">1217</parameter>
+                    </compute>
+                    <trigger>
+                        <min>20</min>
+                        <email>mark.cd.ashdown@gmail.com</email>
+                        <warning>Too dry</warning>
+                    </trigger>
+                    <compare>
+                        <device>weather</device>
+                        <field>rainfall</field>
+                        <colour>navy</colour>
+                    </compare>
+                </field>
+                <field>
+                    <id>air-temp-C</id>
+                    <compare>
+                        <device>Tree1</device>
+                        <field>air-temp-C</field>
+                        <colour>blue</colour>
+                    </compare>
+                </field>
+                <field>
+                    <id>soil-temp-C</id>
+                    <compare>
+                        <device>Tree1</device>
+                        <field>soil-temp-C</field>
+                        <colour>blue</colour>
+                    </compare>
+                </field>
+                <field>
+                    <id>battery-voltage</id>
+                    <trigger>
+                        <min>3.6</min>
+                        <email>mark.cd.ashdown@gmail.com</email>
+                        <warning>Low battery</warning>
+                    </trigger>
+                </field>
+                <field>
+                    <id>signal-quality</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>run_ms</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>boot-no</id>
+                    <nograph/>
+                </field>
+            </fields>
+            <alert-time>2022-02-01T12:00:00.12Z</alert-time>
+        </device>
+        <device>
+            <id>Tree6</id>
+            <name>Tree 6</name>
+            <device-alert-email>mark.cd.ashdown@gmail.com</device-alert-email>
+            <alert-interval>6</alert-interval>
+            <refresh>120</refresh>
+            <MAC>3C:71:BF:E1:46:60</MAC>
+            <fields>
+                <field>
+                    <id>moisture</id>
+                </field>
+                <field>
+                    <id>moisture-pc2</id>
+                    <compute>
+                        <method>convert-moisture</method>
+                        <parameter id="air">3250</parameter>
+                        <parameter id="water">1320</parameter>
+                    </compute>
+                </field>
+                <field>
+                    <id>battery-voltage</id>
+                </field>
+                <field>
+                    <id>air-temp-C</id>
+                    <compare>
+                        <device>Tree4</device>
+                        <field>humidity-temp</field>
+                        <colour>blue</colour>
+                    </compare>
+                </field>
+                <field>
+                    <id>soil-temp-C</id>
+                </field>
+                <field>
+                    <id>humidity</id>
+                    <compare>
+                        <device>weather</device>
+                        <field>humidity</field>
+                        <colour>navy</colour>
+                    </compare>
+                </field>
+                <field>
+                    <id>signal-quality</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>run_ms</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>boot-no</id>
+                    <nograph/>
+                </field>
+            </fields>
+            <alert-time>2021-08-27T15:00:00.1+01:00</alert-time>
+        </device>
+        <device>
+            <id>BTF-02</id>
+            <name>Rowan Tree</name>
+            <location>16 Morley Square</location>
+            <refresh>120</refresh>
+            <alert-interval>6</alert-interval>
+            <device-alert-email>kit.wallace@gmail.com</device-alert-email>
+            <MAC>24:6F:28:45:C5:E0</MAC>
+            <active/>
+            <fields>
+                <field>
+                    <id>battery-voltage</id>
+                    <trigger>
+                        <min>3.6</min>
+                        <warning>Low battery</warning>
+                    </trigger>
+                </field>
+                <field>
+                    <id>soil-temp-C</id>
+                </field>
+                <field>
+                    <id>air-temp-C</id>
+                </field>
+                <field>
+                    <id>moisture-pc</id>
+                    <compute>
+                        <method>convert-moisture</method>
+                        <parameter id="air">3025</parameter>
+                        <parameter id="water">1180</parameter>
+                    </compute>
+                </field>
+            </fields>
+           
+        </device>
+        <device>
+            <id>weather</id>
+            <name>Horfield Weather</name>
+            <location>Horfield</location>
+            <latitude>51.5</latitude>
+            <longitude>-2.575</longitude>
+            <refresh>360</refresh>
+            <device-alert-email>kit.wallace@gmail.com</device-alert-email>
+            <link>
+                <title>Martyn Hick's Horfield weather station</title>
+                <href>http://www.martynhicks.uk/weather/data.php</href>
+            </link>
+            <active/>
+            <fields>
+                <field>
+                    <id>air-temp-C</id>
+                </field>
+                <field>
+                    <id>humidity</id>
+                </field>
+                <field>
+                    <id>rainfall</id>
+                </field>
+                <field>
+                    <id>UV</id>
+                </field>
+                <field>
+                    <id>baro</id>
+                </field>
+            </fields>
+        </device><!--        <device>
+            <id>Tree8</id>
+            <name>Tree 8</name>
+            <device-alert-email>kit.wallace@gmail.com</device-alert-email>
+            <alert-interval>6</alert-interval>
+            <refresh>120</refresh>
+            <MAC>24:6F:28:D0:12:34</MAC>
+            <fields>
+                <field>
+                    <id>moisture-pc</id>
+                    <trigger>
+                        <min>20</min>
+                        <warning>Too dry</warning>
+                    </trigger>
+                    <trigger>
+                        <max>95</max>
+                        <warning>Too wet</warning>
+                    </trigger>
+                    <compute>
+                        <method>convert-moisture</method>
+                        <parameter id="air">3071</parameter>
+                        <parameter id="water">1200</parameter>
+                    </compute>
+                </field>
+                <field>
+                    <id>air-temp-C</id>
+                </field>
+                <field>
+                    <id>soil-temp-C</id>
+                </field>
+                <field>
+                    <id>battery-voltage</id>
+                </field>
+                <field>
+                    <id>signal-quality</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>run_ms</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>boot-no</id>
+                    <nograph/>
+                </field>
+            </fields>
+            <alert-time>2022-03-03T12:00:00.099Z</alert-time>
+        </device>
+        -->
+        <device>
+            <id>MCDA</id>
+            <location>Dual energy monitor</location>
+            <refresh>5</refresh>
+            <device-alert-email>mark.cd.ashdown@gmail.com</device-alert-email>
+            <alert-interval>1</alert-interval>
+            <fields>
+                <field>
+                    <id>Grid</id>
+                </field>
+                <field>
+                    <id>Solar</id>
+                </field>
+                <field>
+                    <id>Corrected_Grid</id>
+                </field>
+                <field>
+                    <id>Power_Used</id>
+                </field>
+                <field>
+                    <nograph/>
+                    <id>ms</id>
+                </field>
+            </fields>
+            <alert-time>2021-05-14T05:00:00.101+01:00</alert-time>
+        </device>
+        <device>
+            <id>MS16</id>
+            <name>House energy usage</name>
+            <location>16 Morley Square</location>
+            <refresh>5</refresh>
+            <device-alert-email>kit.wallace@gmail.com</device-alert-email>
+            <alert-interval>1</alert-interval>
+            <fields>
+                <field>
+                    <id>current</id>
+                </field>
+                <field>
+                    <nograph/>
+                    <id>seconds</id>
+                </field>
+                <field>
+                    <id>watts</id>
+                </field>
+            </fields>
+            <alert-time>2021-05-24T14:00:00.117+01:00</alert-time>
+        </device>
+        <device>
+            <id>EW-01</id>
+            <name>Southmead 2022</name>
+            <location>Tiny Forest, Southmead </location>
+            <device-alert-email>kit.wallace@gmail.com</device-alert-email>
+            <alert-interval>6</alert-interval>
+            <software-version>V6.6</software-version>
+            <refresh>120</refresh>
+            <MAC>24:6F:28:D0:6E:4C</MAC>
+            <fields>
+                <field>
+                    <id>moisture-pc</id>
+                    <trigger>
+                        <min>20</min>
+                        <warning>Too dry</warning>
+                    </trigger>
+                    <trigger>
+                        <max>95</max>
+                        <warning>Too wet</warning>
+                    </trigger>
+                    <compute>
+                        <method>convert-moisture</method>
+                        <parameter id="air">2650</parameter>
+                        <parameter id="water">860</parameter>
+                    </compute>
+                </field>
+                <field>
+                    <id>air-temp-C</id>
+                    <tag>temp-C-1</tag>
+                </field>
+                <field>
+                    <id>soil-temp-C</id>
+                    <tag>temp-C-0</tag>
+                </field>
+                <field>
+                    <id>battery-voltage</id>
+                </field>
+                <field>
+                    <id>signal-quality</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>run_ms</id>
+                    <nograph/>
+                </field>
+                <field>
+                    <id>boot-no</id>
+                    <nograph/>
+                </field>
+            </fields>
+            <alert-time>2022-03-22T08:47:55.122Z</alert-time>
+            <active/>
+        </device>
+        <device>
+            <id>EW-02</id>
+            <name>Acer tub</name>
+            <location>16 Morley Square</location>
+            <device-alert-email>kit.wallace@gmail.com</device-alert-email>
+            <MAC>24:6F:28:4A:9A:1C</MAC>
+            <alert-interval>6</alert-interval>
+            <refresh>120</refresh>
+            <software-version>V6.6</software-version>
+            <fields>
+                <field>
+                    <id>battery-voltage</id>
+                    <trigger>
+                        <min>3.6</min>
+                        <warning>Low battery</warning>
+                    </trigger>
+                </field>
+                <field>
+                    <id>soil-temp-C</id>
+                    <tag>temp-C-0</tag>
+                </field>
+                <field>
+                    <id>air-temp-C</id>
+                    <tag>temp-C-1</tag>
+                </field>
+                <field>
+                    <id>moisture-pc</id>
+                    <compute>
+                        <method>convert-moisture</method>
+                        <parameter id="air">3355</parameter>
+                        <parameter id="water">1380</parameter>
+                    </compute>
+                    <trigger>
+                        <min>20</min>
+                        <warning>Too dry</warning>
+                    </trigger>
+                </field>
+            </fields>
+            <alert-time>2022-03-22T12:00:00.138Z</alert-time>
+            <active/>
+        </device>
+        <device>
+            <id>EW-03</id>
+            <name>Earthwatch - 03</name>
+            <location/>
+            <device-alert-email>kit.wallace@gmail.com</device-alert-email>
+            <MAC>2C:F4:32:50:20:34</MAC>
+            <alert-interval>6</alert-interval>
+            <refresh>120</refresh>
+            <software-version>V6.6</software-version>
+            <fields>
+                <field>
+                    <id>battery-voltage</id>
+                    <trigger>
+                        <min>3.6</min>
+                        <warning>Low battery</warning>
+                    </trigger>
+                </field>
+                <field>
+                    <tag>temp-C-1</tag>
+                    <id>soil-temp-C</id>
+                </field>
+                <field>
+                    <tag>temp-C-0</tag>
+                    <id>air-temp-C</id>
+                </field>
+                <field>
+                    <id>moisture-pc</id>
+                    <trigger>
+                        <min>20</min>
+                        <warning>Too dry</warning>
+                    </trigger>
+                    <compute>
+                        <method>convert-moisture</method>
+                        <parameter id="air">2750</parameter>
+                        <parameter id="water">900</parameter>
+                    </compute>
+                </field>
+            </fields>
+        </device>
+        <device>
+            <id>EW-04</id>
+            <name>Earthwatch - 04</name>
+            <location/>
+            <device-alert-email>kit.wallace@gmail.com</device-alert-email>
+            <MAC>24:6F:28:46:33:6C</MAC>
+            <alert-interval>6</alert-interval>
+            <refresh>120</refresh>
+            <software-version>V6.6</software-version>
+            <fields>
+                <field>
+                    <id>battery-voltage</id>
+                    <trigger>
+                        <min>3.6</min>
+                        <warning>Low battery</warning>
+                    </trigger>
+                </field>
+                <field>
+                    <tag>temp-C-1</tag>
+                    <id>soil-temp-C</id>
+                </field>
+                <field>
+                    <tag>temp-C-0</tag>
+                    <id>air-temp-C</id>
+                </field>
+                <field>
+                    <id>moisture-pc</id>
+                    <trigger>
+                        <min>20</min>
+                        <warning>Too dry</warning>
+                    </trigger>
+                    <compute>
+                        <method>convert-moisture</method>
+                        <parameter id="air">3300</parameter>
+                        <parameter id="water">1900</parameter>
+                    </compute>
+                </field>
+            </fields>
+        </device>
+        <device>
+            <id>EW-05</id>
+            <name>Earthwatch - 05</name>
+            <location/>
+            <device-alert-email>kit.wallace@gmail.com</device-alert-email>
+            <MAC>E8:68:E7:0E:85:3C</MAC>
+            <alert-interval>6</alert-interval>
+            <refresh>120</refresh>
+            <software-version>V6.6</software-version>
+            <fields>
+                <field>
+                    <id>battery-voltage</id>
+                    <trigger>
+                        <min>3.6</min>
+                        <warning>Low battery</warning>
+                    </trigger>
+                </field>
+                <field>
+                    <tag>temp-C-0</tag>
+                    <id>soil-temp-C</id>
+                </field>
+                <field>
+                    <tag>temp-C-1</tag>
+                    <id>air-temp-C</id>
+                </field>
+                <field>
+                    <id>moisture-pc</id>
+                    <trigger>
+                        <min>20</min>
+                        <warning>Too dry</warning>
+                    </trigger>
+                    <compute>
+                        <method>convert-moisture</method>
+                        <parameter id="air">2770</parameter>
+                        <parameter id="water">900</parameter>
+                    </compute>
+                </field>
+            </fields>
+        </device>
+        <device>
+            <id>EW-06</id>
+            <name>Earthwatch - 06</name>
+            <location/>
+            <device-alert-email>kit.wallace@gmail.com</device-alert-email>
+            <MAC>24:6F:28:44:B6:84</MAC>
+            <alert-interval>6</alert-interval>
+            <refresh>120</refresh>
+            <software-version>V6.6</software-version>
+            <fields>
+                <field>
+                    <id>battery-voltage</id>
+                    <trigger>
+                        <min>3.6</min>
+                        <warning>Low battery</warning>
+                    </trigger>
+                </field>
+                <field>
+                    <tag>temp-C-0</tag>
+                    <id>soil-temp-C</id>
+                </field>
+                <field>
+                    <tag>temp-C-1</tag>
+                    <id>air-temp-C</id>
+                </field>
+                <field>
+                    <id>moisture-pc</id>
+                    <trigger>
+                        <min>20</min>
+                        <warning>Too dry</warning>
+                    </trigger>
+                    <compute>
+                        <method>convert-moisture</method>
+                        <parameter id="air">2760</parameter>
+                        <parameter id="water">900</parameter>
+                    </compute>
+                </field>
+            </fields>
+        </device>
+    </devices>
+</configuration>
